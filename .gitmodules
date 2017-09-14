@@ -1,0 +1,3 @@
+[submodule "api"]
+	path = api
+	url = https://github.com/sfu-ireceptor/api.git
