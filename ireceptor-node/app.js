@@ -12,23 +12,24 @@ var config = {
   configDir: 'config'
 };
 
-console.log(config.appRoot);
-//var swaggerFile = path.resolve(config.appRoot, 'api/swagger/swagger.json');
+//console.log(config.appRoot);
 var swaggerFile = path.resolve(config.appRoot, 'api/swagger/ireceptor-api.json');
-console.log(swaggerFile);
+console.log('Using swapper API file: ' + swaggerFile);
 var swaggerString = fs.readFileSync(swaggerFile, 'utf8');
 config.swagger = JSON.parse(swaggerString);
 
 
 SwaggerExpress.create(config, function(err, swaggerExpress) {
-  if (err) { throw err; }
+    if (err) { throw err; }
 
-  // install middleware
-  swaggerExpress.register(app);
+    // install middleware
+    swaggerExpress.register(app);
 
-  var port = process.env.PORT || 8083;
-  app.listen(port);
+    var port = process.env.PORT || 8080;
+    app.listen(port);
 
+    console.log('iReceptor API listening on port:' + port);
+    
   //if (swaggerExpress.runner.swagger.paths['/metadata']) {
   //  console.log('try this:\ncurl http://127.0.0.1:' + port + '/hello?name=Scott');
   //}

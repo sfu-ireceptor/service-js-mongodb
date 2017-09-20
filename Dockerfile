@@ -59,7 +59,6 @@ RUN cd /service-js-mongodb/ireceptor-node && npm install
 
 # Copy project source
 COPY . /service-js-mongodb
-RUN cp /service-js-mongodb/api/iReceptor_Data_Service_API_V1-0-2.json /service-js-mongodb/ireceptor-node/api/swagger/ireceptor-api.json
+RUN cp /service-js-mongodb/api/iReceptor_Data_Service_API_V1-0-3.json /service-js-mongodb/ireceptor-node/api/swagger/ireceptor-api.json
 
-#CMD ["/usr/local/bin/swagger", "project", "start", "/service-js-mongodb/ireceptor-node"]
 CMD ["/usr/bin/node", "--harmony", "/service-js-mongodb/ireceptor-node/app.js"]
