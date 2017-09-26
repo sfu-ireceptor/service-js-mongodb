@@ -2,6 +2,16 @@
 
 var util = require('util');
 
+// Server environment config
+var mongoSettings = require('../../config/mongoSettings');
+
+var MongoClient = require('mongodb').MongoClient;
+var assert = require('assert');
+
+var url = 'mongodb://'
+    + mongoSettings.username + ':' + mongoSettings.userSecret + '@'
+    + mongoSettings.hostname + ':27017/admin';
+
 /*
  Once you 'require' a module you can reference the things that it exports.  These are defined in module.exports.
 
@@ -12,7 +22,8 @@ var util = require('util');
   - Or the operationId associated with the operation in your Swagger document
  */
 module.exports = {
-  postSamples: postSamples
+    getSamples: getSamples,
+    postSamples: postSamples
 };
 
 /*
@@ -23,43 +34,92 @@ module.exports = {
  */
 function postSamples(req, res) {
     console.log('postSamples');
+    console.log(url);
+
+    MongoClient.connect(url, function(err, db) {
+	assert.equal(null, err);
+	console.log("Connected successfully to server");
+
+	var v1db = db.db('v1public');
+	var collection = v1db.collection('sample');
+
+	collection.find().toArray(function(err, docs) {
+
+	    console.log(docs);
+	    
+	db.close();
 
   // variables defined in the Swagger document can be referenced using req.swagger.params.{parameter_name}
   //var name = req.swagger.params.name.value || 'stranger';
   //var hello = util.format('Hello, %s!', name);
 
     // this sends back a JSON response which is a single string
-    var m = {
-        "subject_code": "Subject One",
-	"subject_id": 1,
-	"subject_gender": "Male",
-	"subject_ethnicity": "Eth1",
-	"project_id": 0,
-	"project_name": "First Project",
-	"project_parent_id": null,
-	"lab_id": 0,
-	"lab_name": "First Lab",
-	"case_control_id": 0,
-	"case_control_name": "Control",
-	"sample_id": 1,
-	"project_sample_id": 1,
-	"sequence_count": 0,
-	"sample_name": "Blood Sample 01",
-	"subject_age": 22,
-	"sample_subject_id": 1,
-	"dna_id": 1,
-	"dna_type": "cDNA",
-	"sample_source_id": 2,
-	"sample_source_name": "Blood (PBMC)",
-	"lab_cell_subset_name": "Naive B Alpha",
-	"ireceptor_cell_subset_name": "Naive B",
-	"marker_1": "CR19",
-	"marker_2": "CR20",
-	"marker_3": "CR21",
-	"marker_4": null,
-	"marker_5": null,
-	"marker_6": null
-    };
+	    var m = [
+		{
+		    "sequence_count": 0,
+		    "study_id": "string",
+		    "study_title": "string",
+		    "study_type": "string",
+		    "inclusion_exclusion_criteria": "string",
+		    "grants": "string",
+		    "lab_name": "string",
+		    "collected_by": "string",
+		    "uploaded_by": "string",
+		    "lab_address": "string",
+		    "pubs_ids": "string",
+		    "subject_id": "string",
+		    "organism": "string",
+		    "sex": "string",
+		    "age": "string",
+		    "age_event": "string",
+		    "ancestry_population": "string",
+		    "ethnicity": "string",
+		    "race": "string",
+		    "species_name": "string",
+		    "strain_name": "string",
+		    "linked_subjects": "string",
+		    "link_type": "string",
+		    "sample_id": "string",
+		    "sample_type": "string",
+		    "tissue": "string",
+		    "disease_state_sample": "string",
+		    "collection_date": "string",
+		    "collection_time_event": "string",
+		    "source_commercial": "string",
+		    "cell_subset": "string",
+		    "cell_phenotype": "string",
+		    "study_group_description": "string",
+		    "library_source": "string",
+		    "subject_age": 0,
+		    "marker_1": "string",
+		    "marker_2": "string",
+		    "marker_3": "string",
+		    "marker_4": "string",
+		    "marker_5": "string",
+		    "marker_6": "string",
+		    "subject_db_id": 0,
+		    "project_db_id": 0,
+		    "project_parent_db_id": 0,
+		    "lab_db_id": 0,
+		    "case_control_db_id": 0,
+		    "sample_db_id": 0,
+		    "dna_db_id": 0,
+		    "project_sample_db_id": 0,
+		    "sample_subject_db_id": 0,
+		    "sample_source_db_id": 0
+		}
+	    ];
+	    
+	    res.json(m);
 
-  res.json(m);
+        });
+        });
+}
+
+function getSamples(req, res) {
+    console.log('getSamples');
+
+    var m = [];
+    
+    res.json(m);
 }

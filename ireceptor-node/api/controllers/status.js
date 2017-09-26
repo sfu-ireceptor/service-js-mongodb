@@ -23,5 +23,5 @@ function getStatus(req, res) {
 
 function getInfo(req, res) {
     //console.log('getStatus');
-    res.json({"name":"iReceptor Node API", "version":"0.0.1"});
+    res.json({"name":"iReceptor Node API Service", "version":"0.0.1"});
 }

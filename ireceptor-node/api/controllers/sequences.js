@@ -12,7 +12,9 @@ var util = require('util');
   - Or the operationId associated with the operation in your Swagger document
  */
 module.exports = {
-    getSequences: getSequences
+    getSequenceSummary: getSequenceSummary,
+    getSequenceData: getSequenceData,
+    postSequenceData: postSequenceData
 };
 
 /*
@@ -21,15 +23,33 @@ module.exports = {
   Param 1: a handle to the request object
   Param 2: a handle to the response object
  */
-function getSequences(req, res) {
-    console.log('getSequences');
+function getSequenceSummary(req, res) {
+    console.log('getSequenceSummary');
 
     // variables defined in the Swagger document can be referenced using req.swagger.params.{parameter_name}
     //var name = req.swagger.params.name.value || 'stranger';
     //var hello = util.format('Hello, %s!', name);
 
     // this sends back a JSON response which is a single string
-    var m = [ ];
+    var m = {aggregation_summary: [], sequences: []};
+
+  res.json(m);
+}
+
+function getSequenceData(req, res) {
+    console.log('getSequenceData');
+
+    // this sends back a JSON response which is a single string
+    var m = [];
+
+  res.json(m);
+}
+
+function postSequenceData(req, res) {
+    console.log('postSequenceData');
+
+    // this sends back a JSON response which is a single string
+    var m = [];
 
   res.json(m);
 }

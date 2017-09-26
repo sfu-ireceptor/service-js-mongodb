@@ -12,7 +12,8 @@ var util = require('util');
   - Or the operationId associated with the operation in your Swagger document
  */
 module.exports = {
-    getCloneSummary: getCloneSummary
+    getCloneSummary: getCloneSummary,
+    getCloneData: getCloneData
 };
 
 /*
@@ -29,7 +30,16 @@ function getCloneSummary(req, res) {
     //var hello = util.format('Hello, %s!', name);
 
     // this sends back a JSON response which is a single string
-    var m = { };
+    var m = [];
+
+  res.json(m);
+}
+
+function getCloneData(req, res) {
+    console.log('getCloneData');
+
+    // this sends back a JSON response which is a single string
+    var m = [];
 
   res.json(m);
 }
