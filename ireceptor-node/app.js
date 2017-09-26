@@ -5,27 +5,32 @@ var app = require('express')();
 var path = require('path');
 var fs = require('fs');
 
+// Server environment config
+var config = require('./config/config');
+
 module.exports = app; // for testing
 
-var config = {
+// Swagger middleware config
+var swaggerConfig = {
   appRoot: __dirname, // required config
   configDir: 'config'
 };
 
+// Load swagger API
 //console.log(config.appRoot);
-var swaggerFile = path.resolve(config.appRoot, 'api/swagger/ireceptor-api.json');
+var swaggerFile = path.resolve(swaggerConfig.appRoot, 'api/swagger/iReceptor_Data_Service_API_V1.json');
 console.log('Using swapper API file: ' + swaggerFile);
 var swaggerString = fs.readFileSync(swaggerFile, 'utf8');
-config.swagger = JSON.parse(swaggerString);
+swaggerConfig.swagger = JSON.parse(swaggerString);
 
-
-SwaggerExpress.create(config, function(err, swaggerExpress) {
+// Create service
+SwaggerExpress.create(swaggerConfig, function(err, swaggerExpress) {
     if (err) { throw err; }
 
     // install middleware
     swaggerExpress.register(app);
 
-    var port = process.env.PORT || 8080;
+    var port = config.port || 8080;
     app.listen(port);
 
     console.log('iReceptor API listening on port:' + port);

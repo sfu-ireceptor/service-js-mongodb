@@ -2,6 +2,16 @@
 
 var util = require('util');
 
+// Server environment config
+var mongoSettings = require('../../config/mongoSettings');
+
+var MongoClient = require('mongodb').MongoClient;
+var assert = require('assert');
+
+var url = 'mongodb://'
+    + mongoSettings.username + ':' + mongoSettings.userSecret + '@'
+    + mongoSettings.hostname + ':27017/admin';
+
 /*
  Once you 'require' a module you can reference the things that it exports.  These are defined in module.exports.
 
@@ -23,6 +33,20 @@ module.exports = {
  */
 function postSamples(req, res) {
     console.log('postSamples');
+    console.log(url);
+
+    MongoClient.connect(url, function(err, db) {
+	assert.equal(null, err);
+	console.log("Connected successfully to server");
+
+	var v1db = db.db('v1public');
+	var collection = v1db.collection('sample');
+
+	collection.find().toArray(function(err, docs) {
+
+	    console.log(docs);
+	    
+	db.close();
 
   // variables defined in the Swagger document can be referenced using req.swagger.params.{parameter_name}
   //var name = req.swagger.params.name.value || 'stranger';
@@ -62,4 +86,7 @@ function postSamples(req, res) {
     };
 
   res.json(m);
+
+        });
+        });
 }
