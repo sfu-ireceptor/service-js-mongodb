@@ -1,16 +1,16 @@
 {
-  "name": "ireceptor-node",
-  "version": "0.0.1",
+  "name": "vdjserver-ireceptor-node",
+  "version": "0.1.0",
   "private": true,
-  "description": "New Swagger API Project",
+  "description": "VDJServer API for iReceptor",
   "keywords": [],
   "author": "",
-  "license": "",
+  "license": "GNU GPL",
   "main": "app.js",
   "dependencies": {
     "express": "^4.12.3",
     "mongodb": "^2.2.31",
-    "swagger-express-mw": "^0.1.0"
+    "swagger-express-mw": "^0.7.0"
   },
   "devDependencies": {
     "should": "^7.1.0",
