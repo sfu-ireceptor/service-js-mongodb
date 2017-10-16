@@ -2,6 +2,9 @@
 
 var util = require('util');
 
+// Server environment config
+var config = require('../../config/config');
+
 /*
  Once you 'require' a module you can reference the things that it exports.  These are defined in module.exports.
 
@@ -23,5 +26,5 @@ function getStatus(req, res) {
 
 function getInfo(req, res) {
     //console.log('getStatus');
-    res.json({"name":"iReceptor Node API Service", "version":"0.0.1"});
+    res.json({ name: config.info.name, description: config.info.description, version: config.info.version});
 }
