@@ -26,6 +26,36 @@ module.exports = {
     postSamples: postSamples
 };
 
+var extractRecords = function(records, uuid_name) {
+    var objIDs = [];
+    var objDict = {};
+    for (var i = 0; i < records.length; ++i) {
+	if (objIDs.indexOf(records[i][uuid_name]) < 0)
+	    objIDs.push(records[i][uuid_name]);
+
+	objDict[records[i]['vdjserver_uuid']] = records[i];
+    }
+
+    return [ objIDs, objDict ];
+}
+
+var flattenRecords = function(records, objDict, uuid_name) {
+    for (var i = 0; i < records.length; ++i) {
+	delete records[i]['_id'];
+	var cp = objDict[records[i][uuid_name]];
+	for (var p in cp) {
+	    if (p == '_id') continue;
+	    if (p == 'vdjserver_uuid') continue;
+	    if (p == 'filename_uuid') {
+		// do not overwrite an existing file uuid
+		if (!records[i][p] || records[i][p].length == 0) records[i][p] = cp[p];
+		continue;
+	    }
+	    records[i][p] = cp[p];
+	}
+    }
+}
+
 /*
   Functions in a127 controllers used for operations should take two parameters:
 
@@ -36,84 +66,88 @@ function postSamples(req, res) {
     console.log('postSamples');
     console.log(url);
 
+    // TODO: implement query
+    var results = [];
+
     MongoClient.connect(url, function(err, db) {
 	assert.equal(null, err);
 	console.log("Connected successfully to server");
 
 	var v1db = db.db('v1public');
-	var collection = v1db.collection('sample');
+	var napCollection = v1db.collection('nucleicAcidProcessing');
+	var cpCollection = v1db.collection('cellProcessing');
+	var sampleCollection = v1db.collection('sample');
+	var subjectCollection = v1db.collection('subject');
+	var studyCollection = v1db.collection('study');
 
-	collection.find().toArray(function(err, docs) {
+	napCollection.find().toArray()
+	    .then(function(records) {
+		//console.log(napRecords);
+		//console.log(napRecords.length);
 
-	    console.log(docs);
-	    
-	db.close();
+		// start with nucleicAcidProcessing records
+		for (var i = 0; i < records.length; ++i) results.push(records[i]);
+		var objs = extractRecords(records, 'cell_processing_uuid');
 
-  // variables defined in the Swagger document can be referenced using req.swagger.params.{parameter_name}
-  //var name = req.swagger.params.name.value || 'stranger';
-  //var hello = util.format('Hello, %s!', name);
+		// query associated cellProcessing records
+		var query = { vdjserver_uuid: { $in: objs[0] } };
+		return cpCollection.find(query).toArray();
+	    })
+	    .then(function(records) {
+		//console.log(records);
 
-    // this sends back a JSON response which is a single string
-	    var m = [
-		{
-		    "sequence_count": 0,
-		    "study_id": "string",
-		    "study_title": "string",
-		    "study_type": "string",
-		    "inclusion_exclusion_criteria": "string",
-		    "grants": "string",
-		    "lab_name": "string",
-		    "collected_by": "string",
-		    "uploaded_by": "string",
-		    "lab_address": "string",
-		    "pubs_ids": "string",
-		    "subject_id": "string",
-		    "organism": "string",
-		    "sex": "string",
-		    "age": "string",
-		    "age_event": "string",
-		    "ancestry_population": "string",
-		    "ethnicity": "string",
-		    "race": "string",
-		    "species_name": "string",
-		    "strain_name": "string",
-		    "linked_subjects": "string",
-		    "link_type": "string",
-		    "sample_id": "string",
-		    "sample_type": "string",
-		    "tissue": "string",
-		    "disease_state_sample": "string",
-		    "collection_date": "string",
-		    "collection_time_event": "string",
-		    "source_commercial": "string",
-		    "cell_subset": "string",
-		    "cell_phenotype": "string",
-		    "study_group_description": "string",
-		    "library_source": "string",
-		    "subject_age": 0,
-		    "marker_1": "string",
-		    "marker_2": "string",
-		    "marker_3": "string",
-		    "marker_4": "string",
-		    "marker_5": "string",
-		    "marker_6": "string",
-		    "subject_db_id": 0,
-		    "project_db_id": 0,
-		    "project_parent_db_id": 0,
-		    "lab_db_id": 0,
-		    "case_control_db_id": 0,
-		    "sample_db_id": 0,
-		    "dna_db_id": 0,
-		    "project_sample_db_id": 0,
-		    "sample_subject_db_id": 0,
-		    "sample_source_db_id": 0
+		// extract and flatten
+		var objs = extractRecords(records, 'sample_uuid');
+		flattenRecords(results, objs[1], 'cell_processing_uuid');
+
+		// query associated sample records
+		var query = { vdjserver_uuid: { $in: objs[0] } };
+		return sampleCollection.find(query).toArray();
+	    })
+	    .then(function(records) {
+		//console.log(records);
+
+		// extract and flatten
+		var objs = extractRecords(records, 'subject_uuid');
+		flattenRecords(results, objs[1], 'sample_uuid');	
+
+		// query associated subject records
+		var query = { vdjserver_uuid: { $in: objs[0] } };
+		return subjectCollection.find(query).toArray();
+	    })
+	    .then(function(records) {
+		//console.log(records);
+
+	    	// extract and flatten
+		var objs = extractRecords(records, 'study_uuid');
+		flattenRecords(results, objs[1], 'subject_uuid');	
+
+		// query associated study records
+		var query = { vdjserver_uuid: { $in: objs[0] } };
+		return studyCollection.find(query).toArray();
+	    })
+	    .then(function(records) {
+		//console.log(records);
+
+	    	// extract and flatten
+		var objs = extractRecords(records, 'vdjserver_uuid');
+		flattenRecords(results, objs[1], 'study_uuid');	
+	    })
+	    .then(function() {
+		// clean up data types
+		for (var i = 0; i < results.length; ++i) {
+		    for (var p in results[i]) {
+			if (!results[i][p]) delete results[i][p];
+			else if ((typeof results[i][p] == 'string') && (results[i][p].length == 0)) delete results[i][p];
+		    }
 		}
-	    ];
-	    
-	    res.json(m);
-
-        });
-        });
+	    })
+	    .then(function() {
+		db.close();
+		res.json(results);
+	    });
+		
+    });
 }
 
 function getSamples(req, res) {
