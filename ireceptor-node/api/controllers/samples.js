@@ -26,19 +26,23 @@ module.exports = {
     postSamples: postSamples
 };
 
-/*
-  Functions in a127 controllers used for operations should take two parameters:
+// perform query, shared by GET and POST
+var querySamples = function(req, res) {
+    //console.log(url);
+    //console.log(req.swagger.operation.parameterObjects);
+    //console.log(req.swagger.params.ir_username.value);
+    //console.log(req.swagger.params.ir_subject_age_min.value);
 
-  Param 1: a handle to the request object
-  Param 2: a handle to the response object
- */
-function postSamples(req, res) {
-    console.log('postSamples');
-    console.log(url);
-
-    // TODO: implement query
     var results = [];
+    var query = {};
 
+    req.swagger.operation.parameterObjects.forEach(function(parameter) {
+	if (parameter.name == 'ir_username') return;
+	if (req.swagger.params[parameter.name].value)
+	    query[parameter.name] = req.swagger.params[parameter.name].value;
+    });
+    console.log(query);
+    
     MongoClient.connect(url, function(err, db) {
 	assert.equal(null, err);
 	console.log("Connected successfully to mongo");
@@ -46,7 +50,7 @@ function postSamples(req, res) {
 	var v1db = db.db('v1public');
 	var sampleCollection = v1db.collection('sample');
 
-	sampleCollection.find().toArray()
+	sampleCollection.find(query).toArray()
 	    .then(function(records) {
 		//console.log(records);
 		//console.log(records.length);
@@ -73,10 +77,20 @@ function postSamples(req, res) {
     });
 }
 
+/*
+  Functions in a127 controllers used for operations should take two parameters:
+
+  Param 1: a handle to the request object
+  Param 2: a handle to the response object
+ */
+function postSamples(req, res) {
+    console.log('postSamples');
+
+    querySamples(req, res);
+}
+
 function getSamples(req, res) {
     console.log('getSamples');
 
-    var m = [];
-    
-    res.json(m);
+    querySamples(req, res);
 }
