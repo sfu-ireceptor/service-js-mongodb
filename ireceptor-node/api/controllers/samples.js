@@ -36,10 +36,43 @@ var querySamples = function(req, res) {
     var results = [];
     var query = {};
 
+    // construct query
     req.swagger.operation.parameterObjects.forEach(function(parameter) {
-	if (parameter.name == 'ir_username') return;
-	if (req.swagger.params[parameter.name].value)
-	    query[parameter.name] = req.swagger.params[parameter.name].value;
+	//console.log(parameter.type);
+	if (parameter.name == 'ir_username') {
+	    if (req.swagger.params[parameter.name].value)
+		console.log('iReceptor user: ' + req.swagger.params[parameter.name].value);
+	    return;
+	}
+	if (parameter.name == 'ir_subject_age_min') return;
+	if (parameter.name == 'ir_subject_age_max') return;
+
+	if (req.swagger.params[parameter.name].value != undefined) {
+	    // arrays perform $in
+	    if (parameter.type == 'array') {
+		query[parameter.name] = { "$in": req.swagger.params[parameter.name].value };
+	    }
+
+	    // string is $regex
+	    if (parameter.type == 'string') {
+		query[parameter.name] = { "$regex": req.swagger.params[parameter.name].value };
+	    }
+
+	    // integer is exact match
+	    if (parameter.type == 'integer') {
+		query[parameter.name] = req.swagger.params[parameter.name].value;
+	    }
+
+	    // number is exact match
+	    if (parameter.type == 'number') {
+		query[parameter.name] = req.swagger.params[parameter.name].value;
+	    }
+
+	    // boolean is exact match
+	    if (parameter.type == 'boolean') {
+		query[parameter.name] = req.swagger.params[parameter.name].value;
+	    }
+	}
     });
     console.log(query);
     
@@ -53,9 +86,9 @@ var querySamples = function(req, res) {
 	sampleCollection.find(query).toArray()
 	    .then(function(records) {
 		//console.log(records);
-		//console.log(records.length);
+		console.log('Retrieve ' + records.length + ' records.');
 
-		// start with nucleicAcidProcessing records
+		// push to results
 		for (var i = 0; i < records.length; ++i) results.push(records[i]);
 	    })
 	    .then(function() {
@@ -66,6 +99,8 @@ var querySamples = function(req, res) {
 			if (!results[i][p]) delete results[i][p];
 			else if ((typeof results[i][p] == 'string') && (results[i][p].length == 0)) delete results[i][p];
 			else if (p == '_id') delete results[i][p];
+			else if (p == 'vdjserver_filename_uuid') results[i]['ir_project_sample_id'] = results[i][p];
+			else if (p == 'sequence_count') results[i]['ir_sequence_count'] = results[i][p];
 		    }
 		}
 	    })
