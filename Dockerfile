@@ -10,19 +10,25 @@ MAINTAINER VDJServer <vdjserver@utsouthwestern.edu>
 #ENV HTTPS_PROXY 'https://proxy.swmed.edu:3128/'
 
 # Install OS Dependencies
-RUN DEBIAN_FRONTEND='noninteractive' apt-get update
-RUN DEBIAN_FRONTEND='noninteractive' apt-get install -y \
+RUN DEBIAN_FRONTEND='noninteractive' apt-get update && DEBIAN_FRONTEND='noninteractive' apt-get install -y \
     make \
-    nodejs \
-    nodejs-legacy \
-    npm \
-    redis-server \
-    redis-tools \
-    sendmail-bin \
-    supervisor \
     wget \
     xz-utils \
     default-jre
+
+##################
+##################
+
+# not currently using redis and supervisor
+
+# old stuff
+#    nodejs \
+#    nodejs-legacy \
+#    npm \
+#    redis-server \
+#    redis-tools \
+#    sendmail-bin \
+#    supervisor \
 
 # Setup postfix
 # The postfix install won't respect noninteractivity unless this config is set beforehand.
@@ -37,6 +43,14 @@ RUN DEBIAN_FRONTEND='noninteractive' apt-get install -y \
 
 ##################
 ##################
+
+# node
+RUN wget https://nodejs.org/dist/v8.9.0/node-v8.9.0-linux-x64.tar.xz
+RUN tar xf node-v8.9.0-linux-x64.tar.xz
+RUN cp -rf /node-v8.9.0-linux-x64/bin/* /usr/local/bin
+RUN cp -rf /node-v8.9.0-linux-x64/lib/* /usr/local/lib
+RUN cp -rf /node-v8.9.0-linux-x64/include/* /usr/local/include
+RUN cp -rf /node-v8.9.0-linux-x64/share/* /usr/local/share
 
 RUN npm install -g swagger
 
@@ -59,6 +73,6 @@ RUN cd /service-js-mongodb/ireceptor-node && npm install
 
 # Copy project source
 COPY . /service-js-mongodb
-RUN cp /service-js-mongodb/api/iReceptor_Data_Service_API_V1-0-3.json /service-js-mongodb/ireceptor-node/api/swagger/ireceptor-api.json
+RUN cp /service-js-mongodb/api/iReceptor_Data_Service_API_V2.json /service-js-mongodb/ireceptor-node/api/swagger/iReceptor_Data_Service_API_V2.json
 
-CMD ["/usr/bin/node", "--harmony", "/service-js-mongodb/ireceptor-node/app.js"]
+CMD ["node", "--harmony", "/service-js-mongodb/ireceptor-node/app.js"]
