@@ -26,19 +26,27 @@ module.exports = {
     postSamples: postSamples
 };
 
+var male_gender = ["M", "m", "male", "Male"];
+var female_gender = ["F", "f", "female", "Female"];
+
 // perform query, shared by GET and POST
 var querySamples = function(req, res) {
     //console.log(url);
     //console.log(req.swagger.operation.parameterObjects);
     //console.log(req.swagger.params.ir_username.value);
     //console.log(req.swagger.params.ir_subject_age_min.value);
+    //console.log(req);
 
     var results = [];
     var query = {};
 
     // construct query
     req.swagger.operation.parameterObjects.forEach(function(parameter) {
+	//console.log(parameter.name);
 	//console.log(parameter.type);
+	//console.log(req.swagger.params[parameter.name].value);
+
+	var param_name = parameter.name;
 	if (parameter.name == 'ir_username') {
 	    if (req.swagger.params[parameter.name].value)
 		console.log('iReceptor user: ' + req.swagger.params[parameter.name].value);
@@ -46,31 +54,44 @@ var querySamples = function(req, res) {
 	}
 	if (parameter.name == 'ir_subject_age_min') return;
 	if (parameter.name == 'ir_subject_age_max') return;
+	if (parameter.name == 'sequencing_platform') param_name = 'platform';
+
+	if (parameter.name == 'sex') {
+	    var value = req.swagger.params[parameter.name].value;
+	    if (value != undefined) {
+		if (value == 'M') {
+		    query[parameter.name] = { "$in": male_gender };
+		} else if (value == 'F') {
+		    query[parameter.name] = { "$in": female_gender };
+		}
+	    }
+	    return;
+	}
 
 	if (req.swagger.params[parameter.name].value != undefined) {
 	    // arrays perform $in
 	    if (parameter.type == 'array') {
-		query[parameter.name] = { "$in": req.swagger.params[parameter.name].value };
+		query[param_name] = { "$in": req.swagger.params[parameter.name].value };
 	    }
 
 	    // string is $regex
 	    if (parameter.type == 'string') {
-		query[parameter.name] = { "$regex": req.swagger.params[parameter.name].value };
+		query[param_name] = { "$regex": req.swagger.params[parameter.name].value };
 	    }
 
 	    // integer is exact match
 	    if (parameter.type == 'integer') {
-		query[parameter.name] = req.swagger.params[parameter.name].value;
+		query[param_name] = req.swagger.params[parameter.name].value;
 	    }
 
 	    // number is exact match
 	    if (parameter.type == 'number') {
-		query[parameter.name] = req.swagger.params[parameter.name].value;
+		query[param_name] = req.swagger.params[parameter.name].value;
 	    }
 
 	    // boolean is exact match
 	    if (parameter.type == 'boolean') {
-		query[parameter.name] = req.swagger.params[parameter.name].value;
+		query[param_name] = req.swagger.params[parameter.name].value;
 	    }
 	}
     });
@@ -101,6 +122,11 @@ var querySamples = function(req, res) {
 			else if (p == '_id') delete results[i][p];
 			else if (p == 'vdjserver_filename_uuid') results[i]['ir_project_sample_id'] = results[i][p];
 			else if (p == 'sequence_count') results[i]['ir_sequence_count'] = results[i][p];
+			else if (p == 'platform') results[i]['sequencing_platform'] = results[i][p];
+			else if (p == 'sex') {
+			    if (male_gender.indexOf(results[i][p]) >= 0) results[i][p] = 'M';
+			    else if (female_gender.indexOf(results[i][p]) >= 0) results[i][p] = 'F';
+			}
 		    }
 		}
 	    })

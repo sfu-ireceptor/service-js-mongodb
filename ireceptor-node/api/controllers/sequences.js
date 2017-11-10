@@ -31,6 +31,9 @@ module.exports = {
     postSequenceData: postSequenceData
 };
 
+var male_gender = ["M", "m", "male", "Male"];
+var female_gender = ["F", "f", "female", "Female"];
+
 var escapeString = function(text) {
     return text.replace(/\*/g, '\\\*');
 }
@@ -49,6 +52,19 @@ var constructQuery = function(req, res) {
 	    return;
 	}
 	if (parameter.name == 'ir_project_sample_id_list') param_name = 'filename_uuid';
+	if (parameter.name == 'sequencing_platform') param_name = 'platform';
+
+	if (parameter.name == 'sex') {
+	    var value = req.swagger.params[parameter.name].value;
+	    if (value != undefined) {
+		if (value == 'M') {
+		    query[parameter.name] = { "$in": male_gender };
+		} else if (value == 'F') {
+		    query[parameter.name] = { "$in": female_gender };
+		}
+	    }
+	    return;
+	}
 
 	//console.log(parameter.name);
 	//console.log(parameter.type);
@@ -107,6 +123,70 @@ var querySequenceSummary = function(req, res) {
 	var annCollection = v1db.collection('rearrangement');
 	var sampleCollection = v1db.collection('sample');
 
+	annCollection.aggregate([{"$match": query}, {"$group":{"count":{"$sum":1},"_id":"$filename_uuid"}}]).toArray()
+	    .then(function(theCounts) {
+		//console.log(theCounts);
+		var uuids = [];
+		for (var i = 0; i < theCounts.length; ++i) {
+		    counts[theCounts[i]['_id']] = theCounts[i]['count'];
+		    uuids.push(theCounts[i]['_id']);
+		}
+		//console.log(counts);
+		//console.log(uuids);
+
+		var sampleQuery = { vdjserver_filename_uuid: { $in: uuids } };
+		return sampleCollection.find(sampleQuery).toArray();
+	    })
+	    .then(function(records) {
+		//console.log(records.length);
+
+		// push to results
+		for (var i = 0; i < records.length; ++i) results.summary.push(records[i]);
+
+		//console.log('final query');
+		return annCollection.find(query).limit(100).toArray();
+	    })
+	    .then(function(records) {
+		for (var i = 0; i < records.length; ++i) results.items.push(records[i]);
+	    })
+	    .then(function() {
+		// data cleanup
+		for (var i = 0; i < results.summary.length; ++i) {
+		    var entry = results.summary[i];
+		    entry['ir_sequence_count'] = counts[entry['vdjserver_filename_uuid']];
+		    for (var p in entry) {
+			if (!entry[p]) delete entry[p];
+			else if ((typeof entry[p] == 'string') && (entry[p].length == 0)) delete entry[p];
+			else if (p == '_id') delete entry[p];
+			else if (p == 'vdjserver_filename_uuid') entry['ir_project_sample_id'] = entry[p];
+			else if (p == 'platform') entry['sequencing_platform'] = entry[p];
+			else if (p == 'sex') {
+			    if (male_gender.indexOf(entry[p]) >= 0) entry[p] = 'M';
+			    else if (female_gender.indexOf(entry[p]) >= 0) entry[p] = 'F';
+			}
+		    }
+		}
+		
+		for (var i = 0; i < results.items.length; ++i) {
+		    var entry = results.items[i];
+		    for (var p in entry) {
+			if (!entry[p]) delete entry[p];
+			else if ((typeof entry[p] == 'string') && (entry[p].length == 0)) delete entry[p];
+			else if (p == '_id') delete entry[p];
+			else if (p == 'vdjserver_filename_uuid') entry['ir_project_sample_id'] = entry[p];
+		    }
+		}
+	    })
+	    .then(function() {
+		//console.log('All done.');
+		//console.log(counts);
+		db.close();
+		res.json(results);
+	    });
+    });
+}
+
+/*
 	// 1. get distinct set of uuids for query
 	// 2. get rearrangement count for each uuid
 	// 3. get sample metadata
@@ -158,6 +238,11 @@ var querySequenceSummary = function(req, res) {
 				    else if ((typeof entry[p] == 'string') && (entry[p].length == 0)) delete entry[p];
 				    else if (p == '_id') delete entry[p];
 				    else if (p == 'vdjserver_filename_uuid') entry['ir_project_sample_id'] = entry[p];
+				    else if (p == 'platform') entry['sequencing_platform'] = entry[p];
+				    else if (p == 'sex') {
+					if (male_gender.indexOf(entry[p]) >= 0) entry[p] = 'M';
+					else if (female_gender.indexOf(entry[p]) >= 0) entry[p] = 'F';
+				    }
 				}
 			    }
 
@@ -180,7 +265,7 @@ var querySequenceSummary = function(req, res) {
 		});
 	    });
     });
-}
+} */
 
 /*
   Functions in a127 controllers used for operations should take two parameters:
