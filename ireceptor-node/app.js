@@ -1,9 +1,10 @@
 'use strict';
 
-var SwaggerExpress = require('swagger-express-mw');
+//var SwaggerExpress = require('swagger-express-mw');
 var app = require('express')();
 var path = require('path');
 var fs = require('fs');
+var Runner = require('swagger-node-runner');
 
 // Server environment config
 var config = require('./config/config');
@@ -23,6 +24,20 @@ console.log('Using swapper API file: ' + swaggerFile);
 var swaggerString = fs.readFileSync(swaggerFile, 'utf8');
 swaggerConfig.swagger = JSON.parse(swaggerString);
 
+Runner.create(swaggerConfig, function(err, runner) {
+    if (err) { throw err; }
+
+    // install middleware
+    var swaggerExpress = runner.expressMiddleware();
+    swaggerExpress.register(app);
+
+    var port = config.port || 8080;
+    app.listen(port);
+
+    console.log('iReceptor API listening on port:' + port);
+});
+
+/*
 // Create service
 SwaggerExpress.create(swaggerConfig, function(err, swaggerExpress) {
     if (err) { throw err; }
@@ -39,3 +54,4 @@ SwaggerExpress.create(swaggerConfig, function(err, swaggerExpress) {
   //  console.log('try this:\ncurl http://127.0.0.1:' + port + '/hello?name=Scott');
   //}
 });
+*/

@@ -153,13 +153,14 @@ var querySequenceSummary = function(req, res) {
 		// data cleanup
 		for (var i = 0; i < results.summary.length; ++i) {
 		    var entry = results.summary[i];
-		    entry['ir_sequence_count'] = counts[entry['vdjserver_filename_uuid']];
+		    entry['ir_filtered_sequence_count'] = counts[entry['vdjserver_filename_uuid']];
 		    for (var p in entry) {
 			if (!entry[p]) delete entry[p];
 			else if ((typeof entry[p] == 'string') && (entry[p].length == 0)) delete entry[p];
 			else if (p == '_id') delete entry[p];
 			else if (p == 'vdjserver_filename_uuid') entry['ir_project_sample_id'] = entry[p];
 			else if (p == 'platform') entry['sequencing_platform'] = entry[p];
+			else if (p == 'sequence_count') entry['ir_sequence_count'] = entry[p];
 			else if (p == 'sex') {
 			    if (male_gender.indexOf(entry[p]) >= 0) entry[p] = 'M';
 			    else if (female_gender.indexOf(entry[p]) >= 0) entry[p] = 'F';
