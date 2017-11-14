@@ -52,8 +52,19 @@ var querySamples = function(req, res) {
 		console.log('iReceptor user: ' + req.swagger.params[parameter.name].value);
 	    return;
 	}
-	if (parameter.name == 'ir_subject_age_min') return;
-	if (parameter.name == 'ir_subject_age_max') return;
+	// exception: age interval
+	if (parameter.name == 'ir_subject_age_min') {
+	    if (req.swagger.params[parameter.name].value != undefined) {
+		query[param_name] = { "$gte" : req.swagger.params[parameter.name].value };
+	    }
+	    return;
+	}
+	if (parameter.name == 'ir_subject_age_max') {
+	    if (req.swagger.params[parameter.name].value != undefined) {
+		query[param_name] = { "$lte" : req.swagger.params[parameter.name].value };
+	    }
+	    return;
+	}
 	if (parameter.name == 'sequencing_platform') param_name = 'platform';
 
 	if (parameter.name == 'sex') {
