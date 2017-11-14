@@ -1,8 +1,9 @@
 # Base Image
 FROM ubuntu:16.04
 
-MAINTAINER VDJServer <vdjserver@utsouthwestern.edu>
-
+LABEL maintainer.first=VDJServer <vdjserver@utsouthwestern.edu> \
+      maintainer.second=iReceptor <ireceptor@sfu.ca>
+      
 # PROXY: uncomment these if building behind UTSW proxy
 #ENV http_proxy 'http://proxy.swmed.edu:3128/'
 #ENV https_proxy 'https://proxy.swmed.edu:3128/'
