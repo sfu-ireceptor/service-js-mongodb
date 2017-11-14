@@ -1,8 +1,8 @@
 {
-  "name": "vdjserver-ireceptor-node",
-  "version": "0.1.0",
+  "name": "turnkey-ireceptor-node",
+  "version": "0.0.1",
   "private": true,
-  "description": "VDJServer API for iReceptor",
+  "description": "Turnkey Data Source Node for iReceptor",
   "keywords": [],
   "author": "",
   "license": "GNU GPL",

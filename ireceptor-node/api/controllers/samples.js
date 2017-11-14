@@ -131,7 +131,10 @@ var querySamples = function(req, res) {
 			if (!results[i][p]) delete results[i][p];
 			else if ((typeof results[i][p] == 'string') && (results[i][p].length == 0)) delete results[i][p];
 			else if (p == '_id') delete results[i][p];
+			
+			// VDJServer specific... don't need?
 			else if (p == 'vdjserver_filename_uuid') results[i]['ir_project_sample_id'] = results[i][p];
+			
 			else if (p == 'sequence_count') results[i]['ir_sequence_count'] = results[i][p];
 			else if (p == 'platform') results[i]['sequencing_platform'] = results[i][p];
 			else if (p == 'sex') {
