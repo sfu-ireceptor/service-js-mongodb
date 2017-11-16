@@ -119,7 +119,7 @@ var querySequenceSummary = function(req, res) {
 	assert.equal(null, err);
 	console.log("Connected successfully to mongo");
 
-	var v1db = db.db('v1public');
+	var v1db = db.db(mongoSettings.dbname);
 	var annCollection = v1db.collection('rearrangement');
 	var sampleCollection = v1db.collection('sample');
 
