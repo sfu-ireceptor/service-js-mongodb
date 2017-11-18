@@ -53,6 +53,8 @@ var constructQuery = function(req, res) {
 	}
 	if (parameter.name == 'ir_project_sample_id_list') param_name = 'filename_uuid';
 	if (parameter.name == 'sequencing_platform') param_name = 'platform';
+	if (parameter.name == 'junction_length') param_name = 'junction_nt_length';
+	if (parameter.name == 'ir_junction_aa_length') param_name = 'junction_aa_length';
 
 	if (parameter.name == 'sex') {
 	    var value = req.swagger.params[parameter.name].value;
@@ -175,6 +177,8 @@ var querySequenceSummary = function(req, res) {
 			else if ((typeof entry[p] == 'string') && (entry[p].length == 0)) delete entry[p];
 			else if (p == '_id') delete entry[p];
 			else if (p == 'vdjserver_filename_uuid') entry['ir_project_sample_id'] = entry[p];
+			else if (p == 'junction_nt_length') entry['junction_length'] = entry[p];
+			else if (p == 'junction_aa_length') entry['ir_junction_aa_length'] = entry[p];
 		    }
 		}
 	    })
@@ -186,87 +190,6 @@ var querySequenceSummary = function(req, res) {
 	    });
     });
 }
-
-/*
-	// 1. get distinct set of uuids for query
-	// 2. get rearrangement count for each uuid
-	// 3. get sample metadata
-	// 4. get a few annotation records
-	annCollection.distinct('filename_uuid', query)
-	    .then(function(uuids) {
-		//console.log(uuids);
-
-		async.each(uuids, function(item, callback) {
-		    //console.log(item);
-		    var q = constructQuery(req, res);
-		    q['filename_uuid'] = item;
-		    //console.log(q);
-		    annCollection.count(q, function(err, count) {
-			if (err) callback();
-
-			//console.log(count);
-			counts[item] = count;
-			callback();
-		    });
-		}, function(err){
-		    //console.log('get sample metadata');
-		    var sampleQuery = { vdjserver_filename_uuid: { $in: uuids } };
-		    //console.log(sampleQuery);
-		    sampleCollection.find(sampleQuery).toArray()
-			.then(function(records) {
-			    //console.log(records.length);
-
-			    // push to results
-			    for (var i = 0; i < records.length; ++i) results.summary.push(records[i]);
-
-			    //console.log('final query');
-			    return annCollection.find(query).limit(100).toArray();
-			})
-			.then(function(records) {
-			    //console.log(counts);
-			    //console.log('Retrieve ' + records.length + ' records.');
-
-			    // push to results
-			    for (var i = 0; i < records.length; ++i) results.items.push(records[i]);
-			})
-			.then(function() {
-			    // data cleanup
-			    for (var i = 0; i < results.summary.length; ++i) {
-				var entry = results.summary[i];
-				entry['ir_sequence_count'] = counts[entry['vdjserver_filename_uuid']];
-				for (var p in entry) {
-				    if (!entry[p]) delete entry[p];
-				    else if ((typeof entry[p] == 'string') && (entry[p].length == 0)) delete entry[p];
-				    else if (p == '_id') delete entry[p];
-				    else if (p == 'vdjserver_filename_uuid') entry['ir_project_sample_id'] = entry[p];
-				    else if (p == 'platform') entry['sequencing_platform'] = entry[p];
-				    else if (p == 'sex') {
-					if (male_gender.indexOf(entry[p]) >= 0) entry[p] = 'M';
-					else if (female_gender.indexOf(entry[p]) >= 0) entry[p] = 'F';
-				    }
-				}
-			    }
-
-			    for (var i = 0; i < results.items.length; ++i) {
-				var entry = results.items[i];
-				for (var p in entry) {
-				    if (!entry[p]) delete entry[p];
-				    else if ((typeof entry[p] == 'string') && (entry[p].length == 0)) delete entry[p];
-				    else if (p == '_id') delete entry[p];
-				    else if (p == 'vdjserver_filename_uuid') entry['ir_project_sample_id'] = entry[p];
-				}
-			    }
-			})
-			.then(function() {
-			    //console.log('All done.');
-			    //console.log(counts);
-			    db.close();
-			    res.json(results);
-			});
-		});
-	    });
-    });
-} */
 
 /*
   Functions in a127 controllers used for operations should take two parameters:
