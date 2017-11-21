@@ -29,6 +29,12 @@ module.exports = {
 var male_gender = ["M", "m", "male", "Male"];
 var female_gender = ["F", "f", "female", "Female"];
 
+var escapeString = function(text) {
+    var encoded = text.replace(/\*/g, '\\\*');
+    encoded = encoded.replace(/\+/g, '\\\+');
+    return encoded;
+}
+
 // perform query, shared by GET and POST
 var querySamples = function(req, res) {
     //console.log(url);
@@ -87,7 +93,7 @@ var querySamples = function(req, res) {
 
 	    // string is $regex
 	    if (parameter.type == 'string') {
-		query[param_name] = { "$regex": req.swagger.params[parameter.name].value };
+		query[param_name] = { "$regex": escapeString(req.swagger.params[parameter.name].value) };
 	    }
 
 	    // integer is exact match
