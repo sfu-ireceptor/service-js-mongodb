@@ -35,7 +35,9 @@ var male_gender = ["M", "m", "male", "Male"];
 var female_gender = ["F", "f", "female", "Female"];
 
 var escapeString = function(text) {
-    return text.replace(/\*/g, '\\\*');
+    var encoded = text.replace(/\*/g, '\\\*');
+    encoded = encoded.replace(/\+/g, '\\\+');
+    return encoded;
 }
 
 var constructQuery = function(req, res) {
@@ -54,7 +56,7 @@ var constructQuery = function(req, res) {
 	if (parameter.name == 'ir_project_sample_id_list') param_name = 'filename_uuid';
 	if (parameter.name == 'sequencing_platform') param_name = 'platform';
 	if (parameter.name == 'junction_length') param_name = 'junction_nt_length';
-	if (parameter.name == 'ir_junction_aa_length') param_name = 'junction_aa_length';
+	if (parameter.name == 'ir_data_format') return;
 
 	if (parameter.name == 'sex') {
 	    var value = req.swagger.params[parameter.name].value;
@@ -178,7 +180,6 @@ var querySequenceSummary = function(req, res) {
 			else if (p == '_id') delete entry[p];
 			else if (p == 'vdjserver_filename_uuid') entry['ir_project_sample_id'] = entry[p];
 			else if (p == 'junction_nt_length') entry['junction_length'] = entry[p];
-			else if (p == 'junction_aa_length') entry['ir_junction_aa_length'] = entry[p];
 		    }
 		}
 	    })
@@ -188,6 +189,52 @@ var querySequenceSummary = function(req, res) {
 		db.close();
 		res.json(results);
 	    });
+    });
+}
+
+// perform query, shared by GET and POST
+var querySequenceData = function(req, res) {
+    //console.log(req);
+    //console.log(req.swagger.operation.parameterObjects);
+    //console.log(req.swagger.params.ir_username.value);
+    //console.log(req.swagger.params.ir_subject_age_min.value);
+
+    // currently only support JSON format
+    if (req.swagger.params['ir_data_format'].value != 'json') {
+	res.status(400).end();
+	return;
+    }
+
+    var query = constructQuery(req, res);
+    console.log(query);
+
+    MongoClient.connect(url, function(err, db) {
+	assert.equal(null, err);
+	console.log("Connected successfully to mongo");
+
+	var v1db = db.db(mongoSettings.dbname);
+	var annCollection = v1db.collection('rearrangement');
+
+	var first = true;
+	res.write('[');
+	annCollection.find(query).forEach(function(entry) {
+	    // data cleanup
+	    var record = '';
+	    for (var p in entry) {
+		if (!entry[p]) delete entry[p];
+		else if ((typeof entry[p] == 'string') && (entry[p].length == 0)) delete entry[p];
+		else if (p == '_id') delete entry[p];
+		else if (p == 'vdjserver_filename_uuid') entry['ir_project_sample_id'] = entry[p];
+		else if (p == 'junction_nt_length') entry['junction_length'] = entry[p];
+	    }
+	    if (!first) res.write(',\n');
+	    else first = false;
+	    res.write(JSON.stringify(entry));
+	}, function(err) {
+	    db.close();
+	    res.write(']');
+	    res.end();
+	});
     });
 }
 
@@ -212,17 +259,11 @@ function postSequenceSummary(req, res) {
 function getSequenceData(req, res) {
     console.log('getSequenceData');
 
-    // this sends back a JSON response which is a single string
-    var m = [];
-
-  res.json(m);
+    querySequenceData(req, res);
 }
 
 function postSequenceData(req, res) {
     console.log('postSequenceData');
 
-    // this sends back a JSON response which is a single string
-    var m = [];
-
-  res.json(m);
+    querySequenceData(req, res);
 }
