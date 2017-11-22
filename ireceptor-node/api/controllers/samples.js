@@ -131,7 +131,8 @@ var querySamples = function(req, res) {
 	    })
 	    .then(function() {
 		//console.log(results);
-		// any data cleanup
+	    // data cleanup - some of this may be legacy 
+		// VDJServer-specific hence, not applicable for the turnkey?
 		for (var i = 0; i < results.length; ++i) {
 		    for (var p in results[i]) {
 				if (!results[i][p])
