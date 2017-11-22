@@ -48,14 +48,14 @@ var constructQuery = function(req, res) {
 	//console.log(parameter);
 
 	var param_name = parameter.name;
+	
 	if (parameter.name == 'ir_username') {
 	    if (req.swagger.params[parameter.name].value)
 		console.log('iReceptor user: ' + req.swagger.params[parameter.name].value);
 	    return;
 	}
-	if (parameter.name == 'ir_project_sample_id_list') param_name = 'ir_project_sample_id';
 	if (parameter.name == 'sequencing_platform') param_name = 'platform';
-	if (parameter.name == 'junction_length') param_name = 'junction_nt_length';
+	if (parameter.name == 'junction_length')     param_name = 'junction_nt_length';
 	if (parameter.name == 'ir_data_format') return;
 
 	if (parameter.name == 'sex') {
@@ -76,7 +76,7 @@ var constructQuery = function(req, res) {
 	if (req.swagger.params[parameter.name].value != undefined) {
 	    // arrays perform $in
 	    if (parameter.type == 'array') {
-		query[param_name] = { "$in": req.swagger.params[parameter.name].value };
+	    	query[param_name] = { "$in": req.swagger.params[parameter.name].value };
 	    }
 
 	    // string is $regex
@@ -89,17 +89,17 @@ var constructQuery = function(req, res) {
 
 	    // integer is exact match
 	    if (parameter.type == 'integer') {
-		query[param_name] = req.swagger.params[parameter.name].value;
+	    	query[param_name] = req.swagger.params[parameter.name].value;
 	    }
 
 	    // number is exact match
 	    if (parameter.type == 'number') {
-		query[param_name] = req.swagger.params[parameter.name].value;
+	    	query[param_name] = req.swagger.params[parameter.name].value;
 	    }
 
 	    // boolean is exact match
 	    if (parameter.type == 'boolean') {
-		query[param_name] = req.swagger.params[parameter.name].value;
+	    	query[param_name] = req.swagger.params[parameter.name].value;
 	    }
 	}
     });
@@ -127,7 +127,7 @@ var querySequenceSummary = function(req, res) {
 	var annCollection = v1db.collection('sequence'); // Scott calls these the 'rearrangement' collection
 	var sampleCollection = v1db.collection('sample');
 
-	annCollection.aggregate([{"$match": query}, {"$group":{"count":{"$sum":1},"_id":"$ir_project_sample_id"}}]).toArray()
+	annCollection.aggregate([{"$match": query}, {"$group":{"count":{"$sum":1},"_id":"ir_project_sample_id_list"}}]).toArray()
 	    .then(function(theCounts) {
 	    	
 			//console.log(theCounts);
