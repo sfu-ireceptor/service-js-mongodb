@@ -109,47 +109,48 @@ var constructQuery = function(req, res) {
 
 // perform query, shared by GET and POST
 var querySequenceSummary = function(req, res) {
-    //console.log(req);
-    //console.log(req.swagger.operation.parameterObjects);
-    //console.log(req.swagger.params.ir_username.value);
-    //console.log(req.swagger.params.ir_subject_age_min.value);
+    console.log(req);
+    console.log(req.swagger.operation.parameterObjects);
+    console.log(req.swagger.params.ir_username.value);
+    console.log(req.swagger.params.ir_subject_age_min.value);
 
     var results = {summary: [], items: []};
     var counts = {};
     var query = constructQuery(req, res);
-    console.log(query);
+    
+    console.log("1. Query: "+query);
 
     MongoClient.connect(url, function(err, db) {
 	assert.equal(null, err);
-	console.log("Connected successfully to mongo");
+	console.log("2. Connected successfully to mongo");
 
-	var v1db = db.db(mongoSettings.dbname);
-	var annCollection = v1db.collection('sequence'); // Scott calls these the 'rearrangement' collection
-	var sampleCollection = v1db.collection('sample');
+	var irdb = db.db(mongoSettings.dbname);
+	var annCollection = irdb.collection('sequence'); // Scott calls these the 'rearrangement' collection
+	var sampleCollection = irdb.collection('sample');
 
 	annCollection.aggregate([{"$match": query}, {"$group":{"count":{"$sum":1},"_id":"ir_project_sample_id_list"}}]).toArray()
 	    .then(function(theCounts) {
 	    	
-			//console.log(theCounts);
+			console.log("3."+theCounts);
 			var sample_ids = [];
 			for (var i = 0; i < theCounts.length; ++i) {
 			    counts[theCounts[i]['_id']] = theCounts[i]['count'];
 			    sample_ids.push(theCounts[i]['_id']);
 			}
-			//console.log(counts);
-			//console.log(sample_ids);
+			console.log("4."+counts);
+			console.log("5."+sample_ids);
 	
 			var sampleQuery = { ir_project_sample_id: { $in: sample_ids } };
 			
 			return sampleCollection.find(sampleQuery).toArray();
 	    })
 	    .then(function(records) {
-		//console.log(records.length);
+		console.log("6."+records.length);
 
 		// push to results
 		for (var i = 0; i < records.length; ++i) results.summary.push(records[i]);
 
-		//console.log('final query');
+		console.log('6. final query');
 		return annCollection.find(query).limit(100).toArray();
 	    })
 	    .then(function(records) {
@@ -228,8 +229,8 @@ var querySequenceData = function(req, res) {
 	assert.equal(null, err);
 	console.log("Connected successfully to mongo");
 
-	var v1db = db.db(mongoSettings.dbname);
-	var annCollection = v1db.collection('sequence'); // Scott calls these the 'rearrangement' collection
+	var irdb = db.db(mongoSettings.dbname);
+	var annCollection = irdb.collection('sequence'); // Scott calls these the 'rearrangement' collection
 
 	var first = true;
 	res.write('[');
