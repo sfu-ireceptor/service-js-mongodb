@@ -161,7 +161,7 @@ var querySequenceSummary = function (req, res) {
 
                     entry.ir_filtered_sequence_count = counts[entry.ir_project_sample_id];
 
-                    entry.keys.forEach(function (p) {
+                    Object.keys(entry).forEach(function (p) {
                         if (!entry[p]) {
                             delete entry[p];
                         } else if ((typeof entry[p] === "string") && (entry[p].length === 0)) {
@@ -184,7 +184,7 @@ var querySequenceSummary = function (req, res) {
 
                     // data cleanup - some of this may be legacy
                     // VDJServer-specific hence, not applicable for the turnkey?
-                    entry.keys.forEach(function (p) {
+                    Object.keys(entry).forEach(function (p) {
                         if (!entry[p]) {
                             delete entry[p];
                         } else if ((typeof entry[p] === "string") && (entry[p].length === 0)) {
@@ -236,7 +236,7 @@ var querySequenceData = function (req, res) {
             // data cleanup - some of this may be legacy
             // VDJServer-specific hence, not applicable for the turnkey?
 
-            entry.keys.forEach(function (p) {
+            Object.keys(entry).forEach(function (p) {
                 if (!entry[p]) {
                     delete entry[p];
                 } else if ((typeof entry[p] === "string") && (entry[p].length === 0)) {
