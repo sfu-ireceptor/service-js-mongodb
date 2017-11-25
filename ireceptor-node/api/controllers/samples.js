@@ -123,7 +123,7 @@ var querySamples = function (req, res) {
                 });
             })
             .then(function () {
-                //console.log(results);
+                console.log("querySamples() results: " + results);
                 // data cleanup - some of this may be legacy
                 // VDJServer-specific hence, not applicable for the turnkey?
                 results.forEach(function (result) {
