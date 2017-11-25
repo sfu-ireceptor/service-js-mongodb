@@ -55,8 +55,8 @@ var constructQuery = function (req) {
         if (parameter.name === "ir_data_format") {
             return;
         }
-         */
 
+        // This may also be VDJserver specific??
         if (parameter.name === "sex") {
             if (value !== undefined) {
                 if (value === "M") {
@@ -67,7 +67,8 @@ var constructQuery = function (req) {
             }
             return;
         }
-
+         */
+        
         /*
          * The Swagger boolean filter for "functional" sequences
          * needs to be translated into a useful iReceptor query
@@ -159,15 +160,16 @@ var querySequenceSummary = function (req, res) {
             })
             .then(function (records) {
 
-                console.log("6." + records.length);
+                //console.log("6." + records.length);
 
                 // push to results
                 records.forEach(function (r) {
                     results.summary.push(r);
                 });
 
-                console.log("7. final query");
-                return annCollection.find(query).limit(100).toArray();
+                //console.log("7. final query");
+                //return annCollection.find(query).limit(100).toArray(); // hundred sequences seems quite excessive?
+                return annCollection.find(query).limit(20).toArray();
             })
             .then(function (records) {
                 records.forEach(function (r) {
@@ -192,13 +194,13 @@ var querySequenceSummary = function (req, res) {
                             entry.sequencing_platform = entry[p];
                         } else if (p === "sequence_count") {
                             entry.ir_sequence_count = entry[p];
-                        */
                         } else if (p === "sex") {
                             if (male_gender.indexOf(entry[p]) >= 0) {
                                 entry[p] = "M";
                             } else if (female_gender.indexOf(entry[p]) >= 0) {
                                 entry[p] = "F";
                             }
+                        */
                         }
                     });
                 });
@@ -212,8 +214,13 @@ var querySequenceSummary = function (req, res) {
                             delete entry[p];
                         } else if ((typeof entry[p] === "string") && (entry[p].length === 0)) {
                             delete entry[p];
+                        /*
+                         * VDJServer Specific Tag - deprecated in the iReceptor Turnkey?
+                         *
+                         *
                         } else if (p === "junction_nt_length") {
                             entry.junction_length = entry[p];
+                        */
                         }
                     });
                 });
@@ -264,8 +271,12 @@ var querySequenceData = function (req, res) {
                     delete entry[p];
                 } else if ((typeof entry[p] === "string") && (entry[p].length === 0)) {
                     delete entry[p];
+                /*
+                 * VDJServer Specific Tag - deprecated in the iReceptor Turnkey?
+                 *
                 } else if (p === "junction_nt_length") {
                     entry.junction_length = entry[p];
+                */
                 }
             });
 
