@@ -127,7 +127,7 @@ var querySequenceSummary = function (req, res) {
 
                 console.log("3." + JSON.stringify(theCounts));
                 var sample_ids = [];
-                theCounts.foreEach(function (c) { 
+                theCounts.forEach(function (c) { 
                     counts[c._id] = c.count;
                     sample_ids.push(c._id);
                 });
