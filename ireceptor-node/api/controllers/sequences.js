@@ -200,6 +200,9 @@ var querySequenceSummary = function (req, res) {
                 //console.log(counts);
                 db.close();
                 res.json(results);
+            })
+            .catch(function () {
+                console.log("querySequenceSummary() Promise Rejected");
             });
     });
 };

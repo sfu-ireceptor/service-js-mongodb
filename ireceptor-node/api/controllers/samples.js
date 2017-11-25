@@ -151,6 +151,9 @@ var querySamples = function (req, res) {
             .then(function () {
                 db.close();
                 res.json(results);
+            })
+            .catch(function () {
+                console.log("querySamples() Promise Rejected");
             });
 
     });
