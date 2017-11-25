@@ -40,12 +40,18 @@ var querySamples = function (req, res) {
         //console.log(req.swagger.params[parameter.name].value);
 
         var param_name = parameter.name;
+
+        /*
+         * Don't filter this one out, as with VDJServer
+         *
         if (parameter.name === "ir_username") {
             if (req.swagger.params[parameter.name].value) {
                 console.log("iReceptor user: " + req.swagger.params[parameter.name].value);
                 return;
             }
         }
+        */
+
         // exception: age interval
         if (parameter.name === "ir_subject_age_min") {
             if (req.swagger.params[parameter.name].value !== undefined) {
@@ -59,6 +65,10 @@ var querySamples = function (req, res) {
             }
             return;
         }
+        
+        /*
+         * VDJServer specific tag transformations - deprecated in iReceptor turnkey? 
+         *
         if (parameter.name === "sequencing_platform") {
             param_name = "platform";
         }
@@ -74,6 +84,7 @@ var querySamples = function (req, res) {
             }
             return;
         }
+        */
 
         if (req.swagger.params[parameter.name].value !== undefined) {
             // arrays perform $in
@@ -103,11 +114,11 @@ var querySamples = function (req, res) {
         }
     });
 
-    console.log(query);
+    //console.log(query);
 
     MongoClient.connect(url, function (err, db) {
         assert.equal(null, err);
-        console.log("Connected successfully to mongo");
+        //console.log("Connected successfully to mongo");
 
         var v1db = db.db(mongoSettings.dbname);
         var sampleCollection = v1db.collection("sample");
@@ -115,7 +126,7 @@ var querySamples = function (req, res) {
         sampleCollection.find(query).toArray()
             .then(function (records) {
                 //console.log(records);
-                console.log("Retrieve " + records.length + " records.");
+                //console.log("Retrieve " + records.length + " records.");
 
                 // push to results
                 records.forEach(function (r) {
@@ -127,9 +138,9 @@ var querySamples = function (req, res) {
                 // data cleanup - some of this may be legacy
                 // VDJServer-specific hence, not applicable for the turnkey?
                 results.forEach(function (result) {
-                	//console.log("querySamples() result: " + JSON.stringify(result));
-                	Object.keys(result).forEach(function (p) {
-                    	//console.log("querySamples() result key: " + JSON.stringify(p));
+                    //console.log("querySamples() result: " + JSON.stringify(result));
+                    Object.keys(result).forEach(function (p) {
+                        //console.log("querySamples() result key: " + JSON.stringify(p));
                         if (!result[p]) {
                             delete result[p];
                         } else if ((typeof result[p] === "string") && (result[p].length === 0)) {
@@ -155,7 +166,7 @@ var querySamples = function (req, res) {
                 res.json(results);
             })
             .catch(function (e) {
-            	console.log("querySamples() error: " + e);
+                console.log("querySamples() error: " + e);
             });
 
     });
@@ -168,13 +179,13 @@ var querySamples = function (req, res) {
   Param 2: a handle to the response object
  */
 function postSamples(req, res) {
-    console.log("postSamples");
+    //console.log("postSamples");
 
     querySamples(req, res);
 }
 
 function getSamples(req, res) {
-    console.log("getSamples");
+    //console.log("getSamples");
 
     querySamples(req, res);
 }

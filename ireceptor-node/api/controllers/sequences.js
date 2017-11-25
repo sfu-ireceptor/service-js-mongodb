@@ -130,11 +130,11 @@ var querySequenceSummary = function (req, res) {
     var counts = {};
     var query = constructQuery(req);
 
-    console.log("1. Query: " + JSON.stringify(query));
+    //console.log("1. Query: " + JSON.stringify(query));
 
     MongoClient.connect(url, function (err, db) {
         assert.equal(null, err);
-        console.log("2. Connected successfully to mongo");
+        //console.log("2. Connected successfully to mongo");
 
         var irdb = db.db(mongoSettings.dbname);
         var annCollection = irdb.collection("sequence"); // Scott calls this the "rearrangement" collection
@@ -143,7 +143,7 @@ var querySequenceSummary = function (req, res) {
         annCollection.aggregate([{"$match": query}, {"$group": {"_id": "$ir_project_sample_id", "count": {"$sum": 1}}}]).toArray()
             .then(function (theCounts) {
 
-                console.log("3." + JSON.stringify(theCounts));
+                //console.log("3." + JSON.stringify(theCounts));
 
                 var sample_ids = [];
                 theCounts.forEach(function (c) {
@@ -151,8 +151,8 @@ var querySequenceSummary = function (req, res) {
                     sample_ids.push(c._id);
                 });
 
-                console.log("4." + JSON.stringify(counts));
-                console.log("5." + sample_ids);
+                //console.log("4." + JSON.stringify(counts));
+                //console.log("5." + sample_ids);
 
                 var sampleQuery = {_id: {$in: sample_ids}};
 
@@ -250,11 +250,11 @@ var querySequenceData = function (req, res) {
     }
 
     var query = constructQuery(req);
-    console.log(query);
+    //console.log(query);
 
     MongoClient.connect(url, function (err, db) {
         assert.equal(null, err);
-        console.log("Connected successfully to mongo");
+        //console.log("Connected successfully to mongo");
 
         var irdb = db.db(mongoSettings.dbname);
         var annCollection = irdb.collection("sequence"); // Scott calls these the "rearrangement" collection
@@ -300,25 +300,25 @@ var querySequenceData = function (req, res) {
   Param 2: a handle to the response object
  */
 function getSequenceSummary(req, res) {
-    console.log("getSequenceSummary");
+    //console.log("getSequenceSummary");
 
     querySequenceSummary(req, res);
 }
 
 function postSequenceSummary(req, res) {
-    console.log("postSequenceSummary");
+    //console.log("postSequenceSummary");
 
     querySequenceSummary(req, res);
 }
 
 function getSequenceData(req, res) {
-    console.log("getSequenceData");
+    //console.log("getSequenceData");
 
     querySequenceData(req, res);
 }
 
 function postSequenceData(req, res) {
-    console.log("postSequenceData");
+    //console.log("postSequenceData");
 
     querySequenceData(req, res);
 }
