@@ -150,10 +150,10 @@ var querySequenceSummary = function (req, res) {
                     sample_ids.push(c._id);
                 });
 
-                console.log("4." + counts);
+                console.log("4." + JSON.stringify(counts));
                 console.log("5." + sample_ids);
 
-                var sampleQuery = {ir_project_sample_id: {$in: sample_ids}};
+                var sampleQuery = {_id: {$in: sample_ids}};
 
                 return sampleCollection.find(sampleQuery).toArray();
             })
@@ -178,17 +178,21 @@ var querySequenceSummary = function (req, res) {
                 // data cleanup
                 results.summary.forEach(function (entry) {
 
-                    entry.ir_filtered_sequence_count = counts[entry.ir_project_sample_id];
+                    entry.ir_filtered_sequence_count = counts[entry._id];
 
                     Object.keys(entry).forEach(function (p) {
                         if (!entry[p]) {
                             delete entry[p];
                         } else if ((typeof entry[p] === "string") && (entry[p].length === 0)) {
                             delete entry[p];
+                        /*
+                         * VDJServer Specific Tags - deprecated in the iReceptor Turnkey?
+                         *
                         } else if (p === "platform") {
                             entry.sequencing_platform = entry[p];
                         } else if (p === "sequence_count") {
                             entry.ir_sequence_count = entry[p];
+                        */
                         } else if (p === "sex") {
                             if (male_gender.indexOf(entry[p]) >= 0) {
                                 entry[p] = "M";
