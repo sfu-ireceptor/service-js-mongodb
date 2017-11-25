@@ -112,7 +112,7 @@ var querySequenceSummary = function (req, res) {
     var counts = {};
     var query = constructQuery(req);
 
-    console.log("1. Query: " + query);
+    console.log("1. Query: " + JSON.stringify(query));
 
     MongoClient.connect(url, function (err, db) {
         assert.equal(null, err);
@@ -125,12 +125,12 @@ var querySequenceSummary = function (req, res) {
         annCollection.aggregate([{"$match": query}, {"$group": {"count": {"$sum": 1}, "_id": "ir_project_sample_id_list"}}]).toArray()
             .then(function (theCounts) {
 
-                console.log("3." + theCounts);
+                console.log("3." + JSON.stringify(theCounts));
                 var sample_ids = [];
-                //for (var i = 0; i < theCounts.length; ++i) {
-                //    counts[theCounts[i]["_id"]] = theCounts[i]["count"];
-                //    sample_ids.push(theCounts[i]["_id"]);
-                //}
+                theCounts.foreEach(function (c) { 
+                    counts[c._id] = c.count;
+                    sample_ids.push(c._id);
+                });
                 console.log("4." + counts);
                 console.log("5." + sample_ids);
 
