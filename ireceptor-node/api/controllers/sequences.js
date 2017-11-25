@@ -120,7 +120,7 @@ var constructQuery = function (req) {
 // perform query, shared by GET and POST
 var querySequenceSummary = function (req, res) {
 
-    console.log(req);
+    //console.log(req);
     //console.log(req.swagger.operation.parameterObjects);
     //console.log(req.swagger.params.ir_username.value);
     //console.log(req.swagger.params.ir_subject_age_min.value);
@@ -136,18 +136,20 @@ var querySequenceSummary = function (req, res) {
         console.log("2. Connected successfully to mongo");
 
         var irdb = db.db(mongoSettings.dbname);
-        var annCollection = irdb.collection("sequence"); // Scott calls these the "rearrangement" collection
+        var annCollection = irdb.collection("sequence"); // Scott calls this the "rearrangement" collection
         var sampleCollection = irdb.collection("sample");
 
-        annCollection.aggregate([{"$match": query}, {"$group": {"count": {"$sum": 1}, "_id": "ir_project_sample_id_list"}}]).toArray()
+        annCollection.aggregate([{"$match": query}, {"$group": {"_id": "$ir_project_sample_id", "count": {"$sum": 1}}}]).toArray()
             .then(function (theCounts) {
 
                 console.log("3." + JSON.stringify(theCounts));
+
                 var sample_ids = [];
                 theCounts.forEach(function (c) {
                     counts[c._id] = c.count;
                     sample_ids.push(c._id);
                 });
+
                 console.log("4." + counts);
                 console.log("5." + sample_ids);
 
