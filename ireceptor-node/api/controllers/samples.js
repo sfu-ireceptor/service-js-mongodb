@@ -123,10 +123,11 @@ var querySamples = function (req, res) {
                 });
             })
             .then(function () {
-                console.log("querySamples() results: " + results);
+                //console.log("querySamples() results: " + results);
                 // data cleanup - some of this may be legacy
                 // VDJServer-specific hence, not applicable for the turnkey?
                 results.forEach(function (result) {
+                	console.log("querySamples() result: " + result);
                     result.keys.forEach(function (p) {
                         if (!result[p]) {
                             delete result[p];
@@ -152,8 +153,8 @@ var querySamples = function (req, res) {
                 db.close();
                 res.json(results);
             })
-            .catch(function () {
-                console.log("querySamples() Promise Rejected");
+            .catch(function (e) {
+            	console.log("querySamples() error: " + e);
             });
 
     });

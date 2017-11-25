@@ -201,8 +201,8 @@ var querySequenceSummary = function (req, res) {
                 db.close();
                 res.json(results);
             })
-            .catch(function () {
-                console.log("querySequenceSummary() Promise Rejected");
+            .catch(function (e) {
+            	console.log("querySequenceSummary() error: " + e);
             });
     });
 };
