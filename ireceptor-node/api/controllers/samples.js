@@ -123,12 +123,13 @@ var querySamples = function (req, res) {
                 });
             })
             .then(function () {
-                //console.log("querySamples() results: " + results);
+                console.log("querySamples() results: " + JSON.stringify(results));
                 // data cleanup - some of this may be legacy
                 // VDJServer-specific hence, not applicable for the turnkey?
                 results.forEach(function (result) {
-                	console.log("querySamples() result: " + result);
+                	console.log("querySamples() result: " + JSON.stringify(result));
                     result.keys.forEach(function (p) {
+                    	console.log("querySamples() result key: " + JSON.stringify(p));
                         if (!result[p]) {
                             delete result[p];
                         } else if ((typeof result[p] === "string") && (result[p].length === 0)) {
