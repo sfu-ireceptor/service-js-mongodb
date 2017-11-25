@@ -168,8 +168,7 @@ var querySequenceSummary = function (req, res) {
                 });
 
                 //console.log("7. final query");
-                //return annCollection.find(query).limit(100).toArray(); // hundred sequences seems quite excessive?
-                return annCollection.find(query).limit(50).toArray();
+                return annCollection.find(query).limit(100).toArray();
             })
             .then(function (records) {
                 records.forEach(function (r) {
