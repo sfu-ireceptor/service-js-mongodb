@@ -104,9 +104,9 @@ var constructQuery = function (req) {
 var querySequenceSummary = function (req, res) {
 
 	console.log(req);
-    console.log(req.swagger.operation.parameterObjects);
-    console.log(req.swagger.params.ir_username.value);
-    console.log(req.swagger.params.ir_subject_age_min.value);
+    //console.log(req.swagger.operation.parameterObjects);
+    //console.log(req.swagger.params.ir_username.value);
+    //console.log(req.swagger.params.ir_subject_age_min.value);
 
     var results = {summary: [], items: []};
     var counts = {};

@@ -129,7 +129,7 @@ var querySamples = function (req, res) {
                 results.forEach(function (result) {
                 	//console.log("querySamples() result: " + JSON.stringify(result));
                 	Object.keys(result).forEach(function (p) {
-                    	console.log("querySamples() result key: " + JSON.stringify(p));
+                    	//console.log("querySamples() result key: " + JSON.stringify(p));
                         if (!result[p]) {
                             delete result[p];
                         } else if ((typeof result[p] === "string") && (result[p].length === 0)) {
