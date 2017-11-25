@@ -32,6 +32,12 @@ var constructQuery = function (req) {
         //console.log(parameter);
 
         var param_name = parameter.name;
+        var value = req.swagger.params[parameter.name].value;
+
+        /*
+         * The following seem to be VDJServer specific
+         * transformations or censorship of iReceptor
+         * parameters. We disable these for now.
 
         if (parameter.name === "ir_username") {
             if (req.swagger.params[parameter.name].value) {
@@ -49,9 +55,9 @@ var constructQuery = function (req) {
         if (parameter.name === "ir_data_format") {
             return;
         }
+         */
 
         if (parameter.name === "sex") {
-            var value = req.swagger.params[parameter.name].value;
             if (value !== undefined) {
                 if (value === "M") {
                     query[parameter.name] = {"$in": male_gender};
@@ -62,37 +68,48 @@ var constructQuery = function (req) {
             return;
         }
 
+        /*
+         * The Swagger boolean filter for "functional" sequences
+         * needs to be translated into a useful iReceptor query
+         */
+        if (parameter.name === "functional") {
+            if (value !== undefined && parameter.type === "boolean" && value /*true?*/) {
+                query[parameter.name] = "productive";
+            } // else, ignore?
+            return;
+        }
+
         //console.log(parameter.name);
         //console.log(parameter.type);
         //console.log(req.swagger.params[parameter.name].value);
-        if (req.swagger.params[parameter.name].value !== undefined) {
+        if (value !== undefined) {
             // arrays perform $in
             if (parameter.type === "array") {
-                query[param_name] = {"$in": req.swagger.params[parameter.name].value};
+                query[param_name] = {"$in": value};
             }
 
             // string is $regex
             if (parameter.type === "string") {
                 if (param_name === "junction_aa") {
-                    query[param_name] = {"$regex": req.swagger.params[parameter.name].value};
+                    query[param_name] = {"$regex": value};
                 } else {
-                    query[param_name] = {"$regex": "^" + escapeString(req.swagger.params[parameter.name].value)};
+                    query[param_name] = {"$regex": "^" + escapeString(value)};
                 }
             }
 
             // integer is exact match
             if (parameter.type === "integer") {
-                query[param_name] = req.swagger.params[parameter.name].value;
+                query[param_name] = value;
             }
 
             // number is exact match
             if (parameter.type === "number") {
-                query[param_name] = req.swagger.params[parameter.name].value;
+                query[param_name] = value;
             }
 
             // boolean is exact match
             if (parameter.type === "boolean") {
-                query[param_name] = req.swagger.params[parameter.name].value;
+                query[param_name] = value;
             }
         }
     });
@@ -103,7 +120,7 @@ var constructQuery = function (req) {
 // perform query, shared by GET and POST
 var querySequenceSummary = function (req, res) {
 
-	console.log(req);
+    console.log(req);
     //console.log(req.swagger.operation.parameterObjects);
     //console.log(req.swagger.params.ir_username.value);
     //console.log(req.swagger.params.ir_subject_age_min.value);
@@ -127,7 +144,7 @@ var querySequenceSummary = function (req, res) {
 
                 console.log("3." + JSON.stringify(theCounts));
                 var sample_ids = [];
-                theCounts.forEach(function (c) { 
+                theCounts.forEach(function (c) {
                     counts[c._id] = c.count;
                     sample_ids.push(c._id);
                 });
@@ -202,7 +219,7 @@ var querySequenceSummary = function (req, res) {
                 res.json(results);
             })
             .catch(function (e) {
-            	console.log("querySequenceSummary() error: " + e);
+                console.log("querySequenceSummary() error: " + e);
             });
     });
 };
