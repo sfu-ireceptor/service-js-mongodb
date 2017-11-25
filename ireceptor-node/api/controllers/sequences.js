@@ -102,7 +102,8 @@ var constructQuery = function (req) {
 
 // perform query, shared by GET and POST
 var querySequenceSummary = function (req, res) {
-    console.log(req);
+
+	console.log(req);
     console.log(req.swagger.operation.parameterObjects);
     console.log(req.swagger.params.ir_username.value);
     console.log(req.swagger.params.ir_subject_age_min.value);
@@ -146,7 +147,7 @@ var querySequenceSummary = function (req, res) {
                     results.summary.push(r);
                 });
 
-                console.log("6. final query");
+                console.log("7. final query");
                 return annCollection.find(query).limit(100).toArray();
             })
             .then(function (records) {
