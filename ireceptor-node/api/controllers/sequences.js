@@ -30,7 +30,7 @@ var constructQuery = function (req) {
     // construct query
     req.swagger.operation.parameterObjects.forEach(function (parameter) {
 
-        //console.log(parameter);
+        console.log("0. Sequence Parameter:" + parameter);
 
         var param_name = parameter.name;
         var value = req.swagger.params[parameter.name].value;
@@ -45,6 +45,12 @@ var constructQuery = function (req) {
                 console.log("iReceptor user: " + req.swagger.params[parameter.name].value);
                 return;
             }
+        }
+
+        if (parameter.name === "ir_project_sample_id_list") {
+            // Should be an array of ir_project_sample_id's
+        	// Not sure if I need to convert the array values to integers here
+        	query["ir_project_sample_id"] = {"$in": value};
         }
 
         /*
@@ -136,7 +142,7 @@ var querySequenceSummary = function (req, res) {
     var counts = {};
     var query = constructQuery(req);
 
-    //console.log("1. Query: " + JSON.stringify(query));
+    console.log("1. Query: " + JSON.stringify(query));
 
     MongoClient.connect(url, function (err, db) {
         assert.equal(null, err);
