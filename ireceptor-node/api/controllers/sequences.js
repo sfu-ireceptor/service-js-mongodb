@@ -219,14 +219,19 @@ var querySequenceSummary = function (req, res) {
                             delete entry[p];
                         } else if ((typeof entry[p] === "string") && (entry[p].length === 0)) {
                             delete entry[p];
+                        } else if (p === "v_call" || p === "d_call" || p === "j_call") {
+                            if (Array.isArray(entry[p])) {
+                                entry[p] = entry[p].toString();
+                            }
+                        }
                         /*
                          * VDJServer Specific Tag - deprecated in the iReceptor Turnkey?
                          *
                          *
-                        } else if (p === "junction_nt_length") {
+                        else if (p === "junction_nt_length") {
                             entry.junction_length = entry[p];
-                        */
                         }
+                        */
                     });
                 });
             })
@@ -276,13 +281,18 @@ var querySequenceData = function (req, res) {
                     delete entry[p];
                 } else if ((typeof entry[p] === "string") && (entry[p].length === 0)) {
                     delete entry[p];
+                } else if (p === "v_call" || p === "d_call" || p === "j_call") {
+                    if (Array.isArray(entry[p])) {
+                        entry[p] = entry[p].toString();
+                    }
+                }
                 /*
                  * VDJServer Specific Tag - deprecated in the iReceptor Turnkey?
                  *
-                } else if (p === "junction_nt_length") {
+                else if (p === "junction_nt_length") {
                     entry.junction_length = entry[p];
-                */
                 }
+                */
             });
 
             if (!first) {
