@@ -14,8 +14,9 @@ var url = "mongodb://"
         + mongoSettings.username + ":" + mongoSettings.userSecret + "@"
         + mongoSettings.hostname + ":27017/admin";
 
-var male_gender = ["M", "m", "male", "Male"];
-var female_gender = ["F", "f", "female", "Female"];
+// VDJServer-specific - deprecated?
+//var male_gender = ["M", "m", "male", "Male"];
+//var female_gender = ["F", "f", "female", "Female"];
 
 var escapeString = function (text) {
     var encoded = text.replace(/\*/g, "\\*");
@@ -35,9 +36,9 @@ var constructQuery = function (req) {
         var value = req.swagger.params[parameter.name].value;
 
         /*
-         * The following seem to be VDJServer specific
-         * transformations or censorship of iReceptor
-         * parameters. We disable these for now.
+         * We may eventually wish to decide what kind of
+         * access control that the turnkey should have...
+         */
 
         if (parameter.name === "ir_username") {
             if (req.swagger.params[parameter.name].value) {
@@ -46,6 +47,11 @@ var constructQuery = function (req) {
             }
         }
 
+        /*
+         * The following seem to be VDJServer specific
+         * transformations or censorship of iReceptor
+         * parameters. We disable these for now.
+         *
         if (parameter.name === "sequencing_platform") {
             param_name = "platform";
         }
@@ -68,7 +74,7 @@ var constructQuery = function (req) {
             return;
         }
          */
-        
+
         /*
          * The Swagger boolean filter for "functional" sequences
          * needs to be translated into a useful iReceptor query

@@ -42,15 +42,15 @@ var querySamples = function (req, res) {
         var param_name = parameter.name;
 
         /*
-         * Don't filter this one out, as with VDJServer
-         *
+         * We may eventually wish to decide what kind of
+         * access control that the turnkey should have...
+         */
         if (parameter.name === "ir_username") {
             if (req.swagger.params[parameter.name].value) {
                 console.log("iReceptor user: " + req.swagger.params[parameter.name].value);
                 return;
             }
         }
-        */
 
         // exception: age interval
         if (parameter.name === "ir_subject_age_min") {
@@ -65,9 +65,9 @@ var querySamples = function (req, res) {
             }
             return;
         }
-        
+
         /*
-         * VDJServer specific tag transformations - deprecated in iReceptor turnkey? 
+         * VDJServer specific tag transformations - deprecated in iReceptor turnkey?
          *
         if (parameter.name === "sequencing_platform") {
             param_name = "platform";
