@@ -60,7 +60,8 @@ var constructQuery = function (req) {
                 var sample_ids = [];
                 value.forEach(function (s) {
                     const n = s
-                    console.log("sanity check 2:" + parseInt("2")+ ", valueOf(\"2\"): " + "2".valueOf())
+                    const two = 2
+                    console.log("sanity check 2:" + parseInt("2")+ ", valueOf(\"2\"): " + two.toString())
                     console.log("single array entry: " + n + " parseInt value: " + parseInt(n)+ ", valueOf: " + n.valueOf())
                     sample_ids.push(parseInt(n));
                 });
