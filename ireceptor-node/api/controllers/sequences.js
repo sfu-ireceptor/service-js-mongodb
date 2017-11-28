@@ -57,8 +57,8 @@ var constructQuery = function (req) {
             	    console.log("Value again? "+value)
                 var sample_ids = [];
                 value.forEach(function (s) {
-                	    console.log("single array entry: " + s*1)
-                    sample_ids.push(s*1);
+                	    console.log("single array entry: " + s + " is type "+(typeof s))
+                    sample_ids.push(s);
                 });
                 query["ir_project_sample_id"] = {"$in": sample_ids};
             }
