@@ -33,7 +33,7 @@ var constructQuery = function (req) {
         var param_name = parameter.name;
         var value = req.swagger.params[parameter.name].value;
 
-        console.log("0. Sequence Parameter Name: '" + parameter.name+"', Value: '"+parameter.value+"'");
+        console.log("0. Sequence Parameter Name: '" + parameter.name+"', Value: '"+value+"'");
 
         /*
          * We may eventually wish to decide what kind of
