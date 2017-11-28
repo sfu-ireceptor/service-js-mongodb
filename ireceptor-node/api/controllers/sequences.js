@@ -57,16 +57,16 @@ var constructQuery = function (req) {
             let id_list_string = "[" + value + "]"
             console.log("Array value before parsing? " + id_list_string )
             let id_array = JSON.parse(id_list_string)
-            if (Array.isArray(id_array)) {
+            //if (Array.isArray(id_array)) {
                 var sample_ids = [];
                 id_array.forEach(function (s) {
                     console.log("single array entry: " + s + " parseInt value: " + parseInt(s))
                     sample_ids.push(parseInt(s));
                 });
                 query["ir_project_sample_id"] = {"$in": sample_ids};
-            } else {
-                console.log("Input value " + value + " is not an array?")
-            }
+            //} else {
+            //    console.log("Input value " + value + " is not an array?")
+            //}
             return;
         }
 
