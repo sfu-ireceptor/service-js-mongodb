@@ -53,15 +53,14 @@ var constructQuery = function (req) {
                 ) {
             // Should be an array of ir_project_sample_id's
             // Not sure if I need to convert the array values to integers here
-            console.log("sanity check 1:"+parseInt("1"))
+            console.log("sanity check 1: "+ parseInt("1"))
             if (Array.isArray(value)) {
-                console.log("Value again? "+value)
-                console.log("sanity check 2:"+parseInt("2"))
+                console.log("Value again? " + value)
+                console.log("sanity check 2:" + parseInt("2"))
                 var sample_ids = [];
                 value.forEach(function (s) {
-                	    var n = s+""
-                	    console.log("single array entry: " + n )
-                    sample_ids.push(parseInt(n));
+                	    console.log("single array entry: " + s + " parseInt value: " + parseInt(s))
+                    sample_ids.push(parseInt(s));
                 });
                 query["ir_project_sample_id"] = {"$in": sample_ids};
             }
