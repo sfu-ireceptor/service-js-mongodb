@@ -59,8 +59,9 @@ var constructQuery = function (req) {
                 console.log("sanity check 2:" + parseInt("2"))
                 var sample_ids = [];
                 value.forEach(function (s) {
-                	    console.log("single array entry: " + s + " parseInt value: " + parseInt(s))
-                    sample_ids.push(parseInt(s));
+                    let n = s
+                    console.log("single array entry: " + n + " parseInt value: " + parseInt(n))
+                    sample_ids.push(parseInt(n));
                 });
                 query["ir_project_sample_id"] = {"$in": sample_ids};
             }
