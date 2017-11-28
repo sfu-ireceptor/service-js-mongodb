@@ -62,7 +62,7 @@ var constructQuery = function (req) {
                     const n = s
                     const two = 2
                     console.log("sanity check 2: " + parseInt("2")+ ", valueOf(\"2\"): " + String.toString(two))
-                    console.log("single array entry: " + n + " parseInt value: " + parseInt(n)+ ", valueOf: " + n.valueOf())
+                    console.log("single array entry: " + n + " parseInt value: " + parseInt(n)+ ", valueOf: " + String.toString(n))
                     sample_ids.push(parseInt(n));
                 });
                 query["ir_project_sample_id"] = {"$in": sample_ids};
