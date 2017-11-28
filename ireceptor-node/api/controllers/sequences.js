@@ -30,10 +30,10 @@ var constructQuery = function (req) {
     // construct query
     req.swagger.operation.parameterObjects.forEach(function (parameter) {
 
-        console.log("0. Sequence Parameter Name: '" + parameter.name+"', Value: '"+parameter.value+"'");
-
         var param_name = parameter.name;
         var value = req.swagger.params[parameter.name].value;
+
+        console.log("0. Sequence Parameter Name: '" + parameter.name+"', Value: '"+parameter.value+"'");
 
         /*
          * We may eventually wish to decide what kind of
