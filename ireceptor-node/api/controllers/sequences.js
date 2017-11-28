@@ -54,8 +54,8 @@ var constructQuery = function (req) {
             // Should be an array of ir_project_sample_id's
             // Not sure if I need to convert the array values to integers here
             console.log("Value before tesing for array? " + value )
-            if (Object.prototype.toString.call(value) === '[object Array]') {
-            //if (Array.isArray(value)) {
+            value = value.split(",")
+            if (Array.isArray(value)) {
                 var sample_ids = [];
                 console.log("Array value before parsing? " + value )
                 value = JSON.parse(value)
