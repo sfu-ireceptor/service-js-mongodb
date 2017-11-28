@@ -33,7 +33,7 @@ var constructQuery = function (req) {
         var param_name = parameter.name;
         var value = req.swagger.params[parameter.name].value;
 
-        console.log("0. Sequence Parameter Name: '" + parameter.name+"', Value: '"+value+"'");
+        console.log("0. Sequence Parameter Name: '" + parameter.name + "', Value: '" + value + "'");
 
         /*
          * We may eventually wish to decide what kind of
@@ -47,26 +47,14 @@ var constructQuery = function (req) {
             }
         }
 
-        if ( 
-                parameter.name === "ir_project_sample_id_list" || 
-                parameter.name === "ir_project_sample_id_list[]"  // PHP variant? Not sure if this value is even seen?
-                ) {
-            // Should be an array of ir_project_sample_id's
-            // Not sure if I need to convert the array values to integers here
-            console.log("Value before conversion of comma-list to array? " + value )
-            let id_list_string = "[" + value + "]"
-            console.log("Array value before parsing? " + id_list_string )
-            let id_array = JSON.parse(id_list_string)
-            //if (Array.isArray(id_array)) {
-                var sample_ids = [];
-                id_array.forEach(function (s) {
-                    console.log("single array entry: " + s + " parseInt value: " + parseInt(s))
-                    sample_ids.push(parseInt(s));
-                });
-                query["ir_project_sample_id"] = {"$in": sample_ids};
-            //} else {
-            //    console.log("Input value " + value + " is not an array?")
-            //}
+        if (parameter.name === "ir_project_sample_id_list") {
+            var id_list_string = "[" + value + "]";
+            var id_array = JSON.parse(id_list_string);
+            var sample_ids = [];
+            id_array.forEach(function (s) {
+                sample_ids.push(parseInt(s));
+            });
+            query.ir_project_sample_id = {"$in": sample_ids};
             return;
         }
 
