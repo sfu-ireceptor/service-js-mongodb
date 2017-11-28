@@ -47,7 +47,10 @@ var constructQuery = function (req) {
             }
         }
 
-        if (parameter.name === "ir_project_sample_id_list") {
+        if ( 
+    			parameter.name === "ir_project_sample_id_list" || 
+    			parameter.name === "ir_project_sample_id_list[]"  // PHP variant?
+        		) {
             // Should be an array of ir_project_sample_id's
         	// Not sure if I need to convert the array values to integers here
         	if (Array.isArray(value)) {
