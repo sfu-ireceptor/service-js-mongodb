@@ -58,9 +58,10 @@ var constructQuery = function (req) {
                 console.log("Value again? " + value )
                 console.log("sanity check 2:" + parseInt("2"))
                 var sample_ids = [];
-                for(var i = 0;i<value.length;i+=1) {
+                var test = ["1","10"]
+                for(var i = 0;i<test.length;i+=1) {
                 //value.forEach(function (s) {
-                    var s = value[i]
+                    var s = test[i]
                     console.log("sanity check 3.1: " + parseInt("3"))
                     console.log("single array entry: " + s + " parseInt value: " + parseInt(s.toString())+ ", valueOf: " + s.toString())
                     sample_ids.push(parseInt(s.toString()));
