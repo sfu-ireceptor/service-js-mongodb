@@ -49,11 +49,13 @@ var constructQuery = function (req) {
 
         if ( 
                 parameter.name === "ir_project_sample_id_list" || 
-                parameter.name === "ir_project_sample_id_list[]"  // PHP variant?
+                parameter.name === "ir_project_sample_id_list[]"  // PHP variant? Not sure if this value is even seen?
                 ) {
             // Should be an array of ir_project_sample_id's
             // Not sure if I need to convert the array values to integers here
-            if (Array.isArray(value)) {
+            console.log("Value before tesing for array? " + value )
+            if (Object.prototype.toString.call(value) === '[object Array]') {
+            //if (Array.isArray(value)) {
                 var sample_ids = [];
                 console.log("Array value before parsing? " + value )
                 value = JSON.parse(value)
@@ -63,6 +65,8 @@ var constructQuery = function (req) {
                     sample_ids.push(parseInt(s));
                 });
                 query["ir_project_sample_id"] = {"$in": sample_ids};
+            } else {
+                console.log("Input value " + value + " is not an array?")
             }
             return;
         }
