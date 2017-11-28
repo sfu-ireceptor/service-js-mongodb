@@ -30,7 +30,7 @@ var constructQuery = function (req) {
     // construct query
     req.swagger.operation.parameterObjects.forEach(function (parameter) {
 
-        console.log("0. Sequence Parameter:" + JSON.stringify(parameter));
+        console.log("0. Sequence Parameter Name: '" + parameter.name+"', Value: '"+parameter.value+"'");
 
         var param_name = parameter.name;
         var value = req.swagger.params[parameter.name].value;
@@ -48,18 +48,18 @@ var constructQuery = function (req) {
         }
 
         if ( 
-    			parameter.name === "ir_project_sample_id_list" || 
-    			parameter.name === "ir_project_sample_id_list[]"  // PHP variant?
-        		) {
+                parameter.name === "ir_project_sample_id_list" || 
+                parameter.name === "ir_project_sample_id_list[]"  // PHP variant?
+                ) {
             // Should be an array of ir_project_sample_id's
-        	// Not sure if I need to convert the array values to integers here
-        	if (Array.isArray(value)) {
-            	var sample_ids = [];
-	            value.forEach(function (s) {
-	                sample_ids.push(parseInt(s));
-	            });
-	        	query["ir_project_sample_id"] = {"$in": sample_ids};
-        	}
+            // Not sure if I need to convert the array values to integers here
+            if (Array.isArray(value)) {
+                var sample_ids = [];
+                value.forEach(function (s) {
+                    sample_ids.push(parseInt(s));
+                });
+                query["ir_project_sample_id"] = {"$in": sample_ids};
+            }
             return;
         }
 
