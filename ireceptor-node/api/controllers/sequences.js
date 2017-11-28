@@ -58,11 +58,14 @@ var constructQuery = function (req) {
                 console.log("Value again? " + value )
                 console.log("sanity check 2:" + parseInt("2"))
                 var sample_ids = [];
-                value.forEach(function (s) {
+                for(var i = 0;i<value.length;i+=1) {
+                //value.forEach(function (s) {
+                    var s = value[i]
                     console.log("sanity check 3: " + parseInt("3"))
                     console.log("single array entry: " + s + " parseInt value: " + parseInt(s)+ ", valueOf: " + s.toString())
                     sample_ids.push(parseInt(s));
-                });
+                }
+                //);
                 query["ir_project_sample_id"] = {"$in": sample_ids};
             }
             return;
