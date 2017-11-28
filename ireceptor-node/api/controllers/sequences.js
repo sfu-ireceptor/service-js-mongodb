@@ -54,10 +54,10 @@ var constructQuery = function (req) {
             // Should be an array of ir_project_sample_id's
             // Not sure if I need to convert the array values to integers here
             if (Array.isArray(value)) {
-            	    console("Value again? "+value)
+            	    console.log("Value again? "+value)
                 var sample_ids = [];
                 value.forEach(function (s) {
-                	    console("single array entry: "+s)
+                	    console.log("single array entry: "+s)
                     sample_ids.push(parseInt(s));
                 });
                 query["ir_project_sample_id"] = {"$in": sample_ids};
