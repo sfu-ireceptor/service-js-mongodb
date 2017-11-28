@@ -41,20 +41,22 @@ var constructQuery = function (req) {
          */
 
         if (parameter.name === "ir_username") {
-            if (req.swagger.params[parameter.name].value) {
-                console.log("iReceptor user: " + req.swagger.params[parameter.name].value);
+            if (value) {
+                console.log("iReceptor user: " + value);
                 return;
             }
         }
 
         if (parameter.name === "ir_project_sample_id_list") {
-            var id_list_string = "[" + value + "]";
-            var id_array = JSON.parse(id_list_string);
-            var sample_ids = [];
-            id_array.forEach(function (s) {
-                sample_ids.push(parseInt(s));
-            });
-            query.ir_project_sample_id = {"$in": sample_ids};
+        		if (value) {
+	            var id_list_string = "[" + value + "]";
+	            var id_array = JSON.parse(id_list_string);
+	            var sample_ids = [];
+	            id_array.forEach(function (s) {
+	                sample_ids.push(parseInt(s));
+	            });
+	            query.ir_project_sample_id = {"$in": sample_ids};
+        		}
             return;
         }
 
@@ -91,7 +93,7 @@ var constructQuery = function (req) {
          * needs to be translated into a useful iReceptor query
          */
         if (parameter.name === "functional") {
-            if (value !== undefined && parameter.type === "boolean" && value /*true?*/) {
+            if (value && parameter.type === "boolean") {
                 query[parameter.name] = "productive";
             } // else, ignore?
             return;
