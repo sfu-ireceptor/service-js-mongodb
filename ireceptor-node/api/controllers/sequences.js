@@ -53,8 +53,10 @@ var constructQuery = function (req) {
                 ) {
             // Should be an array of ir_project_sample_id's
             // Not sure if I need to convert the array values to integers here
+            console.log("sanity check 1:"+parseInt("1"))
             if (Array.isArray(value)) {
-            	    console.log("Value again? "+value)
+                console.log("Value again? "+value)
+                console.log("sanity check 2:"+parseInt("2"))
                 var sample_ids = [];
                 value.forEach(function (s) {
                 	    var n = s+""
