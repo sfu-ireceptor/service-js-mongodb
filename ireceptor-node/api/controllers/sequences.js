@@ -48,15 +48,16 @@ var constructQuery = function (req) {
         }
 
         if (parameter.name === "ir_project_sample_id_list") {
-        		if (value) {
-	            var id_list_string = "[" + value + "]";
-	            var id_array = JSON.parse(id_list_string);
-	            var sample_ids = [];
-	            id_array.forEach(function (s) {
-	                sample_ids.push(parseInt(s));
-	            });
-	            query.ir_project_sample_id = {"$in": sample_ids};
-        		}
+            if (value) {
+                console.log("ir_project_sample_id_list value: " + value);
+                var id_list_string = "[" + value + "]";
+                var id_array = JSON.parse(id_list_string);
+                var sample_ids = [];
+                id_array.forEach(function (s) {
+                    sample_ids.push(parseInt(s));
+                });
+                query.ir_project_sample_id = {"$in": sample_ids};
+            }
             return;
         }
 
