@@ -49,7 +49,13 @@ var constructQuery = function (req) {
 
         if (parameter.name === "ir_project_sample_id_list") {
             if (value) {
+
                 console.log("ir_project_sample_id_list value: " + value);
+
+                if (!(Number.isInteger(value) || value.includes(","))) {
+                    return; // ignore non-integer strings that don't look like a list
+                }
+
                 var id_list_string = "[" + value + "]";
                 var id_array = JSON.parse(id_list_string);
                 var sample_ids = [];
