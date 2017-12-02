@@ -40,6 +40,7 @@ var querySamples = function (req, res) {
         //console.log(req.swagger.params[parameter.name].value);
 
         var param_name = parameter.name;
+        var value = req.swagger.params[parameter.name].value;
 
         /*
          * We may eventually wish to decide what kind of
@@ -47,7 +48,7 @@ var querySamples = function (req, res) {
          */
         if (parameter.name === "ir_username") {
             if (req.swagger.params[parameter.name].value) {
-                console.log("iReceptor user: " + req.swagger.params[parameter.name].value);
+                console.log("iReceptor user: " + value);
                 return;
             }
         }
@@ -55,13 +56,15 @@ var querySamples = function (req, res) {
         // exception: age interval
         if (parameter.name === "ir_subject_age_min") {
             if (req.swagger.params[parameter.name].value !== undefined) {
-                query[param_name] = {"$gte": req.swagger.params[parameter.name].value};
+                    param_name = "ir_subject_age"
+                    query[param_name] = {"$gte": value};
             }
             return;
         }
         if (parameter.name === "ir_subject_age_max") {
             if (req.swagger.params[parameter.name].value !== undefined) {
-                query[param_name] = {"$lte": req.swagger.params[parameter.name].value};
+                param_name = "ir_subject_age"
+                query[param_name] = {"$lte": value};
             }
             return;
         }
