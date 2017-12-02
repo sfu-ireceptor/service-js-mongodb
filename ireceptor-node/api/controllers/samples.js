@@ -58,14 +58,15 @@ var querySamples = function (req, res) {
         // exception: age interval
         if (parameter.name === "ir_subject_age_min") {
             if (req.swagger.params[parameter.name].value !== undefined) {
-                    param_name = "ir_subject_age"
-                    query[param_name] = {"$gte": value};
+                param_name = "age";
+                query[param_name] = {"$gte": value};
             }
             return;
         }
+
         if (parameter.name === "ir_subject_age_max") {
             if (req.swagger.params[parameter.name].value !== undefined) {
-                param_name = "ir_subject_age"
+                param_name = "age";
                 query[param_name] = {"$lte": value};
             }
             return;
@@ -119,7 +120,7 @@ var querySamples = function (req, res) {
         }
     });
 
-    console.log("Mongo query: "+JSON.stringify(query));
+    console.log("Mongo query: " + JSON.stringify(query));
 
     MongoClient.connect(url, function (err, db) {
         assert.equal(null, err);
@@ -152,10 +153,17 @@ var querySamples = function (req, res) {
                             delete result[p];
                         } else if (p === "_id") {
                             result.ir_project_sample_id = result[p];
-                        } else if (p === "sequence_count") {
-                            result.ir_sequence_count = result[p];
-                        } else if (p === "platform") {
-                            result.sequencing_platform = result[p];
+
+                        /*
+                         * VDJServer specific database tags - ignored?
+                         */
+                        //} else if (p === "sequence_count") {
+                        //    result.ir_sequence_count = result[p];
+                        //} else if (p === "platform") {
+                        //    result.sequencing_platform = result[p];
+
+                        } else if (p === "age") {
+                            result.ir_subject_age = result[p]; // duplicates age, but iReceptor expects this field
                         } else if (p === "sex") {
                             if (male_gender.indexOf(result[p]) >= 0) {
                                 result[p] = "M";
