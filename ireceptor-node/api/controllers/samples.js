@@ -42,6 +42,8 @@ var querySamples = function (req, res) {
         var param_name = parameter.name;
         var value = req.swagger.params[parameter.name].value;
 
+        console.log("0. Sample Parameter Name: '" + parameter.name + "', Value: '" + value + "'");
+
         /*
          * We may eventually wish to decide what kind of
          * access control that the turnkey should have...
@@ -92,27 +94,27 @@ var querySamples = function (req, res) {
         if (req.swagger.params[parameter.name].value !== undefined) {
             // arrays perform $in
             if (parameter.type === "array") {
-                query[param_name] = {"$in": req.swagger.params[parameter.name].value};
+                query[param_name] = {"$in": value};
             }
 
             // string is $regex
             if (parameter.type === "string") {
-                query[param_name] = {"$regex": escapeString(req.swagger.params[parameter.name].value)};
+                query[param_name] = {"$regex": escapeString(value)};
             }
 
             // integer is exact match
             if (parameter.type === "integer") {
-                query[param_name] = req.swagger.params[parameter.name].value;
+                query[param_name] = value;
             }
 
             // number is exact match
             if (parameter.type === "number") {
-                query[param_name] = req.swagger.params[parameter.name].value;
+                query[param_name] = value;
             }
 
             // boolean is exact match
             if (parameter.type === "boolean") {
-                query[param_name] = req.swagger.params[parameter.name].value;
+                query[param_name] = value;
             }
         }
     });
