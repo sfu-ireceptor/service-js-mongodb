@@ -119,7 +119,7 @@ var querySamples = function (req, res) {
         }
     });
 
-    //console.log(query);
+    console.log("Mongo query: "+query);
 
     MongoClient.connect(url, function (err, db) {
         assert.equal(null, err);
