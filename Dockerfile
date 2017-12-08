@@ -15,7 +15,8 @@ RUN DEBIAN_FRONTEND='noninteractive' apt-get update && DEBIAN_FRONTEND='noninter
     make \
     wget \
     xz-utils \
-    default-jre
+    default-jre \
+    git
 
 ##################
 ##################
@@ -65,6 +66,9 @@ RUN mkdir /service-js-mongodb/ireceptor-node
 # Install npm dependencies (optimized for cache)
 COPY ireceptor-node/package.json /service-js-mongodb/ireceptor-node
 RUN cd /service-js-mongodb/ireceptor-node && npm install
+
+# pull in sway bug fix for array parameters
+RUN cd /service-js-mongodb/ireceptor-node && npm install https://github.com/apigee-127/sway.git#94ba34f --save
 
 # Setup redis
 #COPY docker/redis/redis.conf /etc/redis/redis.conf
