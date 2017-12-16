@@ -40,6 +40,9 @@ var querySamples = function (req, res) {
         //console.log(req.swagger.params[parameter.name].value);
 
         var param_name = parameter.name;
+        var value = req.swagger.params[parameter.name].value;
+
+        console.log("0. Sample Parameter Name: '" + parameter.name + "', Value: '" + value + "'");
 
         /*
          * We may eventually wish to decide what kind of
@@ -47,7 +50,7 @@ var querySamples = function (req, res) {
          */
         if (parameter.name === "ir_username") {
             if (req.swagger.params[parameter.name].value) {
-                console.log("iReceptor user: " + req.swagger.params[parameter.name].value);
+                console.log("iReceptor user: " + value);
                 return;
             }
         }
@@ -55,13 +58,16 @@ var querySamples = function (req, res) {
         // exception: age interval
         if (parameter.name === "ir_subject_age_min") {
             if (req.swagger.params[parameter.name].value !== undefined) {
-                query[param_name] = {"$gte": req.swagger.params[parameter.name].value};
+                param_name = "age";
+                query[param_name] = {"$gte": value};
             }
             return;
         }
+
         if (parameter.name === "ir_subject_age_max") {
             if (req.swagger.params[parameter.name].value !== undefined) {
-                query[param_name] = {"$lte": req.swagger.params[parameter.name].value};
+                param_name = "age";
+                query[param_name] = {"$lte": value};
             }
             return;
         }
@@ -89,32 +95,32 @@ var querySamples = function (req, res) {
         if (req.swagger.params[parameter.name].value !== undefined) {
             // arrays perform $in
             if (parameter.type === "array") {
-                query[param_name] = {"$in": req.swagger.params[parameter.name].value};
+                query[param_name] = {"$in": value};
             }
 
             // string is $regex
             if (parameter.type === "string") {
-                query[param_name] = {"$regex": escapeString(req.swagger.params[parameter.name].value)};
+                query[param_name] = {"$regex": escapeString(value)};
             }
 
             // integer is exact match
             if (parameter.type === "integer") {
-                query[param_name] = req.swagger.params[parameter.name].value;
+                query[param_name] = value;
             }
 
             // number is exact match
             if (parameter.type === "number") {
-                query[param_name] = req.swagger.params[parameter.name].value;
+                query[param_name] = value;
             }
 
             // boolean is exact match
             if (parameter.type === "boolean") {
-                query[param_name] = req.swagger.params[parameter.name].value;
+                query[param_name] = value;
             }
         }
     });
 
-    //console.log(query);
+    console.log("Mongo query: " + JSON.stringify(query));
 
     MongoClient.connect(url, function (err, db) {
         assert.equal(null, err);
@@ -147,10 +153,17 @@ var querySamples = function (req, res) {
                             delete result[p];
                         } else if (p === "_id") {
                             result.ir_project_sample_id = result[p];
-                        } else if (p === "sequence_count") {
-                            result.ir_sequence_count = result[p];
-                        } else if (p === "platform") {
-                            result.sequencing_platform = result[p];
+
+                        /*
+                         * VDJServer specific database tags - ignored?
+                         */
+                        //} else if (p === "sequence_count") {
+                        //    result.ir_sequence_count = result[p];
+                        //} else if (p === "platform") {
+                        //    result.sequencing_platform = result[p];
+
+                        } else if (p === "age") {
+                            result.ir_subject_age = result[p]; // duplicates age, but iReceptor expects this field
                         } else if (p === "sex") {
                             if (male_gender.indexOf(result[p]) >= 0) {
                                 result[p] = "M";
