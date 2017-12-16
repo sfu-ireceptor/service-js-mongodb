@@ -67,9 +67,8 @@ RUN mkdir /service-js-mongodb/ireceptor-node
 COPY ireceptor-node/package.json /service-js-mongodb/ireceptor-node
 RUN cd /service-js-mongodb/ireceptor-node && npm install
 
-# RMB 16-12-2017: this patch to the Dockerfile seems incompatible with the AIRR-compliance API in that GET/POST queries don't work at all!
 # pull in sway bug fix for array parameters
-#RUN cd /service-js-mongodb/ireceptor-node && npm install https://github.com/apigee-127/sway.git#94ba34f --save
+RUN cd /service-js-mongodb/ireceptor-node && npm install https://github.com/apigee-127/sway.git#94ba34f --save
 
 # Setup redis
 #COPY docker/redis/redis.conf /etc/redis/redis.conf
