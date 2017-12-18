@@ -11,7 +11,7 @@ var MongoClient = require("mongodb").MongoClient;
 var assert = require("assert");
 
 var url = "mongodb://"
-        + mongoSettings.username + ":" + mongoSettings.userSecret + "@"
+        + mongoSettings.username + ":" + mongoSettings.usersecret + "@"
         + mongoSettings.hostname + ":27017/admin";
 
 // VDJServer-specific - deprecated?
