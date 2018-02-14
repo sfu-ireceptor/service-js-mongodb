@@ -1,3 +1,6 @@
 [submodule "api"]
 	path = api
 	url = https://github.com/sfu-ireceptor/api.git
+[submodule "airr-standards"]
+	path = airr-standards
+	url = https://github.com/airr-community/airr-standards.git

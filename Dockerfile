@@ -80,4 +80,7 @@ RUN cd /service-js-mongodb/ireceptor-node && npm install https://github.com/apig
 COPY . /service-js-mongodb
 RUN cp /service-js-mongodb/api/iReceptor_Data_Service_API_V2.json /service-js-mongodb/ireceptor-node/api/swagger/iReceptor_Data_Service_API_V2.json
 
+# Copy AIRR spec
+RUN cp /service-js-mongodb/airr-standards/specs/definitions.yaml /service-js-mongodb/ireceptor-node/config/airr-definitions.yaml
+
 CMD ["node", "--harmony", "/service-js-mongodb/ireceptor-node/app.js"]

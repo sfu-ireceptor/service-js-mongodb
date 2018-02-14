@@ -12,7 +12,8 @@
     "async": "^2.5.0",
     "express": "^4.12.3",
     "mongodb": "^2.2.31",
-    "swagger-node-runner": "^0.7.0"
+    "swagger-node-runner": "^0.7.0",
+    "js-yaml": "^3.10.0"
   },
   "devDependencies": {
     "should": "^7.1.0",
