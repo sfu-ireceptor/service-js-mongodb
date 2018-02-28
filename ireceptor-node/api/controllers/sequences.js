@@ -7,12 +7,24 @@
 var mongoSettings = require("../../config/mongoSettings");
 
 // Node Libraries
-var MongoClient = require("mongodb").MongoClient;
-var assert = require("assert");
+//Once you 'require' a module you can reference the things that it exports.  These are defined in module.exports.
+var Q = require('q');
+var MongoClient = require('mongodb').MongoClient;
+var assert = require('assert');
+var async = require('async');
+var yaml = require('js-yaml');
+var path = require('path');
+var fs = require('fs');
 
-var url = "mongodb://"
-        + mongoSettings.username + ":" + mongoSettings.usersecret + "@"
-        + mongoSettings.hostname + ":27017/admin";
+var url = 'mongodb://'
+    + mongoSettings.username + ':' + mongoSettings.userSecret + '@'
+    + mongoSettings.hostname + ':27017/admin';
+
+// AIRR config
+var airrConfig = {
+  appRoot: __dirname, // required config
+  configDir: 'config'
+};
 
 // VDJServer-specific - deprecated?
 //var male_gender = ["M", "m", "male", "Male"];
@@ -274,58 +286,99 @@ var querySequenceData = function (req, res) {
     //console.log(req.swagger.params.ir_username.value);
     //console.log(req.swagger.params.ir_subject_age_min.value);
 
-    // currently only support JSON format
-    if (req.swagger.params.ir_data_format.value !== "json") {
+    // currently only support JSON and AIRR format
+    var format = req.swagger.params['ir_data_format'].value;
+    if ((format != 'json') && (format != 'airr')) {
         res.status(400).end();
         return;
     }
 
-    var query = constructQuery(req);
+    var query = constructQuery(req, res);
     //console.log(query);
 
-    MongoClient.connect(url, function (err, db) {
-        assert.equal(null, err);
-        //console.log("Connected successfully to mongo");
+    var headers = [];
+    if (format == 'json') {
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', 'attachment;filename="data.json"');
+    } else if (format == 'airr') {
+        res.setHeader('Content-Type', 'text/tsv');
+        res.setHeader('Content-Disposition', 'attachment;filename="data.tsv"');
 
-        var irdb = db.db(mongoSettings.dbname);
-        var annCollection = irdb.collection("sequence"); // Scott calls these the "rearrangement" collection
+        // Load AIRR spec for field names
+        var airrFile = path.resolve(airrConfig.appRoot, '../../config/airr-definitions.yaml');
+        //console.log(airrFile);
+        var doc = yaml.safeLoad(fs.readFileSync(airrFile));
+        if (!doc) {
+            console.error('Could not load AIRR definitions yaml file.');
+            res.status(500).end();
+            return;
+        }
 
-        var first = true;
-        res.write("[");
-        annCollection.find(query).forEach(function (entry) {
-            // data cleanup - some of this may be legacy
-            // VDJServer-specific hence, not applicable for the turnkey?
+        var schema = doc['Rearrangement'];
+        if (!schema) {
+            console.error('Rearrangement schema missing.');
+            res.status(500).end();
+            return;
+        }
+        for (var p in schema['properties']) headers.push(p);
 
-            Object.keys(entry).forEach(function (p) {
-                if (!entry[p]) {
-                    delete entry[p];
-                } else if ((typeof entry[p] === "string") && (entry[p].length === 0)) {
-                    delete entry[p];
-                } else if (p === "v_call" || p === "d_call" || p === "j_call") {
-                    if (Array.isArray(entry[p])) {
-                        entry[p] = entry[p].toString();
+            // iReceptor specific
+            headers.push('ir_project_sample_id');
+
+            // VDJServer specific
+            //headers.push('vdjserver_filename_uuid');
+
+            res.write(headers.join('\t'));
+            res.write('\n');
+           //console.log(headers);
+        }
+
+        MongoClient.connect(url, function(err, db) {
+            assert.equal(null, err);
+            //console.log("Connected successfully to mongo");
+
+            var irdb = db.db(mongoSettings.dbname);
+            var annCollection = irdb.collection("sequence"); // Scott calls these the "rearrangement" collection
+
+            var first = true;
+            if (format == 'json') res.write('[');
+            annCollection.find(query).forEach(function(entry) {
+                // data cleanup
+                var record = '';
+                Object.keys(entry).forEach(function (p) {
+                    if (!entry[p]) delete entry[p];
+                    else if ((typeof entry[p] == 'string') && (entry[p].length == 0)) delete entry[p];
+                    else if (p == '_id') delete entry[p];
+                    else if (p == 'filename_uuid') {
+                        entry['ir_project_sample_id'] = entry[p];
+                        //entry['vdjserver_filename_uuid'] = entry[p];
+                        entry['rearrangement_set_id'] = entry[p];
+                    } else if (p == 'junction_nt_length') entry['junction_length'] = entry[p]; // is this VDJServer specific?
+                });
+
+                if (!first) {
+                    if (format == 'json') res.write(',\n');
+                    if (format == 'airr') res.write('\n');
+                } else {
+                    first = false;
+	            }
+
+                if (format == 'json') res.write(JSON.stringify(entry));
+                if (format == 'airr') {
+                    var vals = [];
+                    for (var i = 0; i < headers.length; ++i) {
+                        var p = headers[i];
+                        if (!entry[p]) vals.push('');
+                        else vals.push(entry[p]);
                     }
+                    res.write(vals.join('\t'));
                 }
-                /*
-                 * VDJServer Specific Tag - deprecated in the iReceptor Turnkey?
-                 *
-                else if (p === "junction_nt_length") {
-                    entry.junction_length = entry[p];
-                }
-                */
+            }, function(err) {
+               db.close();
+               if (format == 'json') res.write(']\n');
+               if (format == 'airr') res.write('\n');
+               res.end();
             });
-
-            if (!first) {
-                res.write(",\n");
-            } else {
-                first = false;
-            }
-            res.write(JSON.stringify(entry));
-        }, function () {
-            db.close();
-            res.write("]");
-            res.end();
-        });
     });
 };
 
