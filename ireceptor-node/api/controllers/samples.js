@@ -3,6 +3,7 @@
 var util = require('util');
 
 // Server environment config
+var config = require('../../config/config');
 var mongoSettings = require('../../config/mongoSettings');
 
 var MongoClient = require('mongodb').MongoClient;
@@ -11,6 +12,12 @@ var assert = require('assert');
 var url = 'mongodb://'
     + mongoSettings.username + ':' + mongoSettings.userSecret + '@'
     + mongoSettings.hostname + ':27017/admin';
+
+// API customization
+var custom_file = undefined;
+if (config.custom_file) {
+    custom_file = require('../../config/' + config.custom_file);
+}
 
 /*
  Once you 'require' a module you can reference the things that it exports.  These are defined in module.exports.
@@ -25,9 +32,6 @@ module.exports = {
     getSamples: getSamples,
     postSamples: postSamples
 };
-
-var male_gender = ["M", "m", "male", "Male"];
-var female_gender = ["F", "f", "female", "Female"];
 
 var escapeString = function(text) {
     var encoded = text.replace(/\*/g, '\\\*');
@@ -53,38 +57,27 @@ var querySamples = function(req, res) {
 	//console.log(req.swagger.params[parameter.name].value);
 
 	var param_name = parameter.name;
-	if (parameter.name == 'ir_username') {
-	    if (req.swagger.params[parameter.name].value)
-		console.log('iReceptor user: ' + req.swagger.params[parameter.name].value);
-	    return;
-	}
-	// exception: age interval
-	if (parameter.name == 'ir_subject_age_min') {
-	    if (req.swagger.params[parameter.name].value != undefined) {
-		query[param_name] = { "$gte" : req.swagger.params[parameter.name].value };
-	    }
-	    return;
-	}
-	if (parameter.name == 'ir_subject_age_max') {
-	    if (req.swagger.params[parameter.name].value != undefined) {
-		query[param_name] = { "$lte" : req.swagger.params[parameter.name].value };
-	    }
-	    return;
-	}
-	if (parameter.name == 'sequencing_platform') param_name = 'platform';
 
-	if (parameter.name == 'sex') {
-	    var value = req.swagger.params[parameter.name].value;
-	    if (value != undefined) {
-		if (value == 'M') {
-		    query[parameter.name] = { "$in": male_gender };
-		} else if (value == 'F') {
-		    query[parameter.name] = { "$in": female_gender };
-		}
+	// custom handling of parameter name in query
+	if (custom_file) {
+	    var custom_param_name = custom_file.parameterNameForQuerySamples(parameter, req, res);
+	    if (custom_param_name) {
+		param_name = custom_param_name;
 	    }
-	    return;
 	}
 
+	// custom handling of parameter value, default handling will be skipped
+	if (custom_file) {
+	    var custom_param_value = custom_file.parameterValueForQuerySamples(parameter, req, res);
+	    if (custom_param_value) {
+		query[param_name] = custom_param_value;
+		return;
+	    }
+	    // no value but skip default processing
+	    if (custom_param_value === null) return;
+	}
+
+	// Default handling of parameters based upon their type
 	if (req.swagger.params[parameter.name].value != undefined) {
 	    // arrays perform $in
 	    if (parameter.type == 'array') {
@@ -136,14 +129,8 @@ var querySamples = function(req, res) {
 		    for (var p in results[i]) {
 			if (!results[i][p]) delete results[i][p];
 			else if ((typeof results[i][p] == 'string') && (results[i][p].length == 0)) delete results[i][p];
-			else if (p == '_id') delete results[i][p];
-			else if (p == 'vdjserver_filename_uuid') results[i]['ir_project_sample_id'] = results[i][p];
-			else if (p == 'sequence_count') results[i]['ir_sequence_count'] = results[i][p];
-			else if (p == 'platform') results[i]['sequencing_platform'] = results[i][p];
-			else if (p == 'sex') {
-			    if (male_gender.indexOf(results[i][p]) >= 0) results[i][p] = 'M';
-			    else if (female_gender.indexOf(results[i][p]) >= 0) results[i][p] = 'F';
-			}
+			else if (p == '_id') delete results[i][p]
+			else if (custom_file) custom_file.dataCleanForQuerySamples(p, results[i], req, res);
 		    }
 		}
 	    })

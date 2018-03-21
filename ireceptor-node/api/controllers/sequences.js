@@ -3,6 +3,7 @@
 var util = require('util');
 
 // Server environment config
+var config = require('../../config/config');
 var mongoSettings = require('../../config/mongoSettings');
 
 // Node Libraries
@@ -17,6 +18,12 @@ var fs = require('fs');
 var url = 'mongodb://'
     + mongoSettings.username + ':' + mongoSettings.userSecret + '@'
     + mongoSettings.hostname + ':27017/admin';
+
+// API customization
+var custom_file = undefined;
+if (config.custom_file) {
+    custom_file = require('../../config/' + config.custom_file);
+}
 
 // AIRR config
 var airrConfig = {
@@ -40,9 +47,6 @@ module.exports = {
     postSequenceData: postSequenceData
 };
 
-var male_gender = ["M", "m", "male", "Male"];
-var female_gender = ["F", "f", "female", "Female"];
-
 var escapeString = function(text) {
     var encoded = text.replace(/\*/g, '\\\*');
     encoded = encoded.replace(/\+/g, '\\\+');
@@ -57,26 +61,23 @@ var constructQuery = function(req, res) {
 	//console.log(parameter);
 
 	var param_name = parameter.name;
-	if (parameter.name == 'ir_username') {
-	    if (req.swagger.params[parameter.name].value)
-		console.log('iReceptor user: ' + req.swagger.params[parameter.name].value);
-	    return;
-	}
-	if (parameter.name == 'ir_project_sample_id_list') param_name = 'filename_uuid';
-	if (parameter.name == 'sequencing_platform') param_name = 'platform';
-	if (parameter.name == 'junction_length') param_name = 'junction_nt_length';
-	if (parameter.name == 'ir_data_format') return;
 
-	if (parameter.name == 'sex') {
-	    var value = req.swagger.params[parameter.name].value;
-	    if (value != undefined) {
-		if (value == 'M') {
-		    query[parameter.name] = { "$in": male_gender };
-		} else if (value == 'F') {
-		    query[parameter.name] = { "$in": female_gender };
-		}
+	if (custom_file) {
+	    var custom_param_name = custom_file.parameterNameForQuerySequences(parameter, req, res);
+	    if (custom_param_name) {
+		param_name = custom_param_name;
 	    }
-	    return;
+	}
+
+	// custom handling of parameter value, default handling will be skipped
+	if (custom_file) {
+	    var custom_param_value = custom_file.parameterValueForQuerySequences(parameter, req, res);
+	    if (custom_param_value) {
+		query[param_name] = custom_param_value;
+		return;
+	    }
+	    // no value but skip default processing
+	    if (custom_param_value === null) return;
 	}
 
 	//console.log(parameter.name);
@@ -90,10 +91,7 @@ var constructQuery = function(req, res) {
 
 	    // string is $regex
 	    if (parameter.type == 'string') {
-		if (param_name == 'junction_aa')
-		    query[param_name] = { "$regex": req.swagger.params[parameter.name].value };
-		else
-		    query[param_name] = { "$regex": '^' + escapeString(req.swagger.params[parameter.name].value) };
+		query[param_name] = { "$regex": '^' + escapeString(req.swagger.params[parameter.name].value) };
 	    }
 
 	    // integer is exact match
@@ -166,18 +164,14 @@ var querySequenceSummary = function(req, res) {
 		// data cleanup
 		for (var i = 0; i < results.summary.length; ++i) {
 		    var entry = results.summary[i];
-		    entry['ir_filtered_sequence_count'] = counts[entry['vdjserver_filename_uuid']];
+
+		    if (custom_file) custom_file.countsForQuerySequencesSummary(counts, entry, req, res);
+
 		    for (var p in entry) {
 			if (!entry[p]) delete entry[p];
 			else if ((typeof entry[p] == 'string') && (entry[p].length == 0)) delete entry[p];
 			else if (p == '_id') delete entry[p];
-			else if (p == 'vdjserver_filename_uuid') entry['ir_project_sample_id'] = entry[p];
-			else if (p == 'platform') entry['sequencing_platform'] = entry[p];
-			else if (p == 'sequence_count') entry['ir_sequence_count'] = entry[p];
-			else if (p == 'sex') {
-			    if (male_gender.indexOf(entry[p]) >= 0) entry[p] = 'M';
-			    else if (female_gender.indexOf(entry[p]) >= 0) entry[p] = 'F';
-			}
+			else if (custom_file) custom_file.dataCleanForQuerySequencesSummary(p, entry, req, res);
 		    }
 		}
 		
@@ -187,8 +181,7 @@ var querySequenceSummary = function(req, res) {
 			if (!entry[p]) delete entry[p];
 			else if ((typeof entry[p] == 'string') && (entry[p].length == 0)) delete entry[p];
 			else if (p == '_id') delete entry[p];
-			else if (p == 'vdjserver_filename_uuid') entry['ir_project_sample_id'] = entry[p];
-			else if (p == 'junction_nt_length') entry['junction_length'] = entry[p];
+			else if (custom_file) custom_file.dataCleanForQuerySequences(p, entry, req, res);
 		    }
 		}
 	    })
@@ -244,12 +237,13 @@ var querySequenceData = function(req, res) {
 	}
 	for (var p in schema['properties']) headers.push(p);
 
-	// iReceptor specific
-	headers.push('ir_project_sample_id');
+	if (custom_file) {
+	    var custom_headers = custom_file.headersForQuerySequencesData(req, res);
+	    if (custom_headers) {
+		headers = headers.concat(custom_headers);
+	    }
+	}
 
-	// VDJServer specific
-	headers.push('vdjserver_filename_uuid');
-	
 	res.write(headers.join('\t'));
 	res.write('\n');
 	//console.log(headers);
@@ -271,11 +265,7 @@ var querySequenceData = function(req, res) {
 		if (!entry[p]) delete entry[p];
 		else if ((typeof entry[p] == 'string') && (entry[p].length == 0)) delete entry[p];
 		else if (p == '_id') delete entry[p];
-		else if (p == 'filename_uuid') {
-		    entry['ir_project_sample_id'] = entry[p];
-		    entry['vdjserver_filename_uuid'] = entry[p];
-		    entry['rearrangement_set_id'] = entry[p];
-		} else if (p == 'junction_nt_length') entry['junction_length'] = entry[p];
+	    	else if (custom_file) custom_file.dataCleanForQuerySequencesData(p, entry, req, res);
 	    }
 
 	    if (!first) {

@@ -26,5 +26,5 @@ function getStatus(req, res) {
 
 function getInfo(req, res) {
     //console.log('getStatus');
-    res.json({ name: config.info.name, description: config.info.description, version: config.info.version});
+    res.json({ name: config.info.name, description: config.info.description, version: config.info.version, customization: config.custom_file});
 }
