@@ -1,31 +1,51 @@
 'use strict';
 
-var SwaggerExpress = require('swagger-express-mw');
+//var SwaggerExpress = require('swagger-express-mw');
 var app = require('express')();
 var path = require('path');
 var fs = require('fs');
+var Runner = require('swagger-node-runner');
+
+// Server environment config
+var config = require('./config/config');
 
 module.exports = app; // for testing
 
-var config = {
+// Swagger middleware config
+var swaggerConfig = {
   appRoot: __dirname, // required config
   configDir: 'config'
 };
 
+// Load swagger API
 //console.log(config.appRoot);
-var swaggerFile = path.resolve(config.appRoot, 'api/swagger/ireceptor-api.json');
+var swaggerFile = path.resolve(swaggerConfig.appRoot, 'api/swagger/iReceptor_Data_Service_API_V2.json');
 console.log('Using swapper API file: ' + swaggerFile);
 var swaggerString = fs.readFileSync(swaggerFile, 'utf8');
-config.swagger = JSON.parse(swaggerString);
+swaggerConfig.swagger = JSON.parse(swaggerString);
 
+Runner.create(swaggerConfig, function(err, runner) {
+    if (err) { throw err; }
 
-SwaggerExpress.create(config, function(err, swaggerExpress) {
+    // install middleware
+    var swaggerExpress = runner.expressMiddleware();
+    swaggerExpress.register(app);
+
+    var port = config.port || 8080;
+    app.listen(port);
+
+    console.log('iReceptor API listening on port:' + port);
+});
+
+/*
+// Create service
+SwaggerExpress.create(swaggerConfig, function(err, swaggerExpress) {
     if (err) { throw err; }
 
     // install middleware
     swaggerExpress.register(app);
 
-    var port = process.env.PORT || 8080;
+    var port = config.port || 8080;
     app.listen(port);
 
     console.log('iReceptor API listening on port:' + port);
@@ -34,3 +54,4 @@ SwaggerExpress.create(config, function(err, swaggerExpress) {
   //  console.log('try this:\ncurl http://127.0.0.1:' + port + '/hello?name=Scott');
   //}
 });
+*/
