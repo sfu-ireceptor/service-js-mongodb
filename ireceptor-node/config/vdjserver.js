@@ -86,6 +86,41 @@ template.parameterNameForQuerySequences = function(parameter, req, res) {
     if (parameter.name == 'ir_project_sample_id_list') return 'filename_uuid';
     if (parameter.name == 'sequencing_platform') return 'platform';
     if (parameter.name == 'junction_length') return 'junction_nt_length';
+    if (parameter.name == 'functional') return 'productive';
+
+    if (parameter.name == 'v_call') {
+	var value = req.swagger.params[parameter.name].value;
+	if (value != undefined) {
+	    if (value.indexOf('*') >= 0) return 'ir_vgene_allele';
+	    if (value.indexOf('-') >= 0) return 'ir_vgene_gene';
+	    return 'ir_vgene_family';
+	}
+    }
+
+    if (parameter.name == 'd_call') {
+	var value = req.swagger.params[parameter.name].value;
+	if (value != undefined) {
+	    if (value.indexOf('*') >= 0) return 'ir_dgene_allele';
+	    if (value.indexOf('-') >= 0) return 'ir_dgene_gene';
+	    return 'ir_dgene_family';
+	}
+    }
+
+    if (parameter.name == 'j_call') {
+	var value = req.swagger.params[parameter.name].value;
+	if (value != undefined) {
+	    if (value.indexOf('*') >= 0) return 'ir_jgene_allele';
+	    if (value.indexOf('-') >= 0) return 'ir_jgene_gene';
+	    return 'ir_jgene_family';
+	}
+    }
+
+    if (parameter.name == 'junction_aa') {
+	var value = req.swagger.params[parameter.name].value;
+	if (value != undefined) {
+	    return 'ir_cdr3_substrings';
+	}
+    }
 
     return undefined;
 }
@@ -104,10 +139,10 @@ template.parameterValueForQuerySequences = function(parameter, req, res) {
     if (parameter.name == 'ir_data_format') return null;
 
     if (parameter.name == 'junction_aa') {
-	var value = req.swagger.params[parameter.name].value;
-	if (value != undefined) {
-	    return { "$regex": req.swagger.params[parameter.name].value };
-	}
+	return req.swagger.params[parameter.name].value;
+	//if (value != undefined) {
+	//    return { "$regex": req.swagger.params[parameter.name].value };
+	//}
     }
 
     if (parameter.name == 'sex') {
@@ -119,6 +154,19 @@ template.parameterValueForQuerySequences = function(parameter, req, res) {
 		return { "$in": female_gender };
 	    }
 	}
+    }
+
+    // exact match instead of default regex
+    if (parameter.name == 'v_call') {
+	return req.swagger.params[parameter.name].value;
+    }
+
+    if (parameter.name == 'd_call') {
+	return req.swagger.params[parameter.name].value;
+    }
+
+    if (parameter.name == 'j_call') {
+	return req.swagger.params[parameter.name].value;
     }
 
     return undefined;
@@ -154,6 +202,7 @@ template.dataCleanForQuerySequences = function(p, entry, req, res) {
 
     if (p == 'vdjserver_filename_uuid') entry['ir_project_sample_id'] = entry[p];
     else if (p == 'junction_nt_length') entry['junction_length'] = entry[p];
+    else if (p == 'productive') entry['functional'] = entry[p];
 
     return undefined;
 }
