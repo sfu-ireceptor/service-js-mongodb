@@ -189,9 +189,9 @@ var querySequenceSummary = function(req, res) {
 	// 2. get rearrangement count for each uuid
 	// 3. get sample metadata
 	// 4. get a few annotation records
-	queryCollection.insertOne({'endpoint':'sequences_summary', 'query': query})
+	queryCollection.insertOne({'endpoint':'sequences_summary', 'query': JSON.stringify(query)})
 	    .then(function(result) {
-		console.log('query saved:', result);
+		console.log('query saved:', result.ops);
 		return annCollection.distinct('filename_uuid', query);
 	    })
 	    .then(function(uuids) {
