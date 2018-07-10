@@ -17,6 +17,12 @@ var swaggerConfig = {
   configDir: 'config'
 };
 
+// trap unhandled promise rejection from aborted queries
+process.on('unhandledRejection', error => {
+    // Will print "unhandledRejection err is not defined"
+    console.log('unhandledRejection:', error.message);
+});
+
 // Load swagger API
 //console.log(config.appRoot);
 var swaggerFile = path.resolve(swaggerConfig.appRoot, 'api/swagger/iReceptor_Data_Service_API_V2.json');
