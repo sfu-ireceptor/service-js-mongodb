@@ -301,7 +301,7 @@ var querySequenceData = function(req, res) {
 	res.setHeader('Content-Disposition', 'attachment;filename="data.tsv"');
 
 	// Load AIRR spec for field names
-	var airrFile = path.resolve(airrConfig.appRoot, '../../config/airr-definitions.yaml');
+	var airrFile = path.resolve(airrConfig.appRoot, '../../config/airr-schema.yaml');
 	//console.log(airrFile);
 	var doc = yaml.safeLoad(fs.readFileSync(airrFile));
 	if (!doc) {

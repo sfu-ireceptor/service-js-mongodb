@@ -81,6 +81,6 @@ COPY . /service-js-mongodb
 RUN cp /service-js-mongodb/api/iReceptor_Data_Service_API_V2.json /service-js-mongodb/ireceptor-node/api/swagger/iReceptor_Data_Service_API_V2.json
 
 # Copy AIRR spec
-RUN cp /service-js-mongodb/airr-standards/specs/definitions.yaml /service-js-mongodb/ireceptor-node/config/airr-definitions.yaml
+RUN cp /service-js-mongodb/airr-standards/specs/airr-schema.yaml /service-js-mongodb/ireceptor-node/config/airr-schema.yaml
 
 CMD ["node", "--harmony", "/service-js-mongodb/ireceptor-node/app.js"]
