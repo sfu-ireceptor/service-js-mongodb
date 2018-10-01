@@ -36,6 +36,42 @@ var escapeString = function (text) {
     return encoded;
 };
 
+var constructSampleQuery = function(req){
+    //function to grab the sample metadata for samples with 
+    //  sequences
+
+    var query={};
+    //see if the list of samples is provided to narrow the query
+    req.swagger.operation.parameterObjects.forEach(function (parameter) {
+
+        var param_name = parameter.name;
+        var value = req.swagger.params[parameter.name].value;
+        if (parameter.name === "ir_project_sample_id_list") {
+            if (value) {
+
+                console.log("ir_project_sample_id_list value: " + value);
+
+                //if (!(Number.isInteger(value) || value.includes(","))) {
+                //    return; // ignore non-integer strings that don't look like a list
+                //}
+
+                var id_list_string = "[" + value + "]";
+                var id_array = JSON.parse(id_list_string);
+                var sample_ids = [];
+                id_array.forEach(function (s) {
+                    sample_ids.push(parseInt(s));
+                });
+                query["_id"] = {"$in": sample_ids};
+            }
+            //skip the processing of ir_project_sample_list in the sequences query. each id 
+            //  will be processed separately 
+            return;
+        }
+    })
+    query["ir_sequence_count"] = {"$gt":0};
+    return(query);
+
+}
 var constructQuery = function (req) {
     var query = {};
 
@@ -60,7 +96,7 @@ var constructQuery = function (req) {
         }
 
         if (parameter.name === "ir_project_sample_id_list") {
-            if (value) {
+            /*if (value) {
 
                 console.log("ir_project_sample_id_list value: " + value);
 
@@ -75,7 +111,9 @@ var constructQuery = function (req) {
                     sample_ids.push(parseInt(s));
                 });
                 query.ir_project_sample_id = {"$in": sample_ids};
-            }
+            }*/
+            //skip the processing of ir_project_sample_list in the sequences query. each id 
+            //  will be processed separately 
             return;
         }
 
@@ -107,15 +145,80 @@ var constructQuery = function (req) {
         }
          */
 
-        /*
-         * The Swagger boolean filter for "functional" sequences
-         * needs to be translated into a useful iReceptor query
-         */
-        if (parameter.name === "functional") {
-            if (value && parameter.type === "boolean") {
-                query[parameter.name] = "productive";
-            } // else, ignore?
+        if (param_name === "functional" && value!=undefined ) {
+            var func_value;
+            if (parameter.type === "boolean") {
+                if (value == true)
+                {
+                    func_value = 1;
+                }
+                else if(value == false)
+                {
+                    func_value = 0;
+                }
+
+            }
+            else
+            {
+                func_value = parseInt(value);
+            }            
+            query[param_name] = func_value;
             return;
+        }
+        if (param_name==="annotation_tool")
+        {
+            if (value!=undefined)
+            {
+                query[param_name] = value;
+            }
+            return;
+        }
+        if (param_name==="ir_annotation_tool")
+        {
+            if ( value!=undefined)
+            {
+                query["annotation_tool"]= value;
+            }
+            return;
+        }
+        if (param_name == "junction_aa")
+        {
+            if (value != undefined)
+            {
+                query["substring"] == value;
+            }
+            return;
+        }
+        /*V, D and J gene is a semi-substring search, essentially it will look for 
+           family, gene or name based on presence or absence of * and - characters in
+           v_,d_,j_call - compromise between functionality and performance. Had we not used
+           V-Quest, a prefix search would be fast but when we have an array of values, we
+           found MongoDB performace suffers*/
+        if (param_name == "v_call" || param_name == "j_call" || param_name == "d_call")
+        {
+            if (value!=undefined)
+            {
+                var prefix_regex = /(.)_/;
+                var allele_regex = /\*/;
+                var gene_regex = /-/;
+                var query_param = "";
+                var gene_prefix = prefix_regex.exec(param_name)[1];
+                console.log("Prefix: "+ gene_prefix);
+                if (allele_regex.exec(value))
+                {
+                    query_param = gene_prefix + "_call";
+                }
+                else if (gene_regex.exec(value))
+                {
+                    query_param = gene_prefix + "gene_gene";
+                }
+                else
+                {
+                    query_param = gene_prefix + "gene_family";
+                }
+                query[query_param] = value;
+                return;
+            }
         }
 
         //console.log(parameter.name);
@@ -125,6 +228,7 @@ var constructQuery = function (req) {
             // arrays perform $in
             if (parameter.type === "array") {
                 query[param_name] = {"$in": value};
+                return;
             }
 
             // string is $regex
@@ -138,17 +242,22 @@ var constructQuery = function (req) {
 
             // integer is exact match
             if (parameter.type === "integer") {
-                query[param_name] = value;
+                console.log("Doing int conversion");
+                var func_val = parseInt(value);
+                query[param_name] = func_val;
+                return;
             }
 
             // number is exact match
             if (parameter.type === "number") {
                 query[param_name] = value;
+                return;
             }
 
             // boolean is exact match
             if (parameter.type === "boolean") {
                 query[param_name] = value;
+                return;
             }
         }
     });
@@ -166,8 +275,12 @@ var querySequenceSummary = function (req, res) {
 
     var results = {summary: [], items: []};
     var counts = {};
+    var sampleQuery = constructSampleQuery(req);
     var query = constructQuery(req);
-
+    var samples=[];
+    var returnSamples=[];
+    var returnSequences=[];
+    var irSampleIds = [];
     console.log("1. Query: " + JSON.stringify(query));
 
     MongoClient.connect(url, function (err, db) {
@@ -175,108 +288,46 @@ var querySequenceSummary = function (req, res) {
         //console.log("2. Connected successfully to mongo");
 
         var irdb = db.db(mongoSettings.dbname);
-        var annCollection = irdb.collection("sequence"); // Scott calls this the "rearrangement" collection
-        var sampleCollection = irdb.collection("sample");
+        var annCollection = irdb.collection("sequences"); // Scott calls this the "rearrangement" collection
+        var sampleCollection = irdb.collection("samples");
+        console.log("Sample query "+JSON.stringify(sampleQuery));
 
-        annCollection.aggregate([{"$match": query}, {"$group": {"_id": "$ir_project_sample_id", "count": {"$sum": 1}}}]).toArray()
-            .then(function (theCounts) {
-
-                //console.log("3." + JSON.stringify(theCounts));
-
-                var sample_ids = [];
-                theCounts.forEach(function (c) {
-                    counts[c._id] = c.count;
-                    sample_ids.push(c._id);
-                });
-
-                //console.log("4." + JSON.stringify(counts));
-                //console.log("5." + sample_ids);
-
-                var sampleQuery = {_id: {$in: sample_ids}};
-
-                return sampleCollection.find(sampleQuery).toArray();
+        sampleCollection.find(sampleQuery).toArray()
+            .then(function (theSamples){
+                async.eachSeries(theSamples, function(sample, callback){
+                    var currentQuery = query;
+                    currentQuery["ir_project_sample_id"] = sample["_id"];
+                    irSampleIds.push(sample["_id"]);
+                    annCollection.count(currentQuery, function (err, theCount){
+                        sample["ir_filtered_sequence_count"] = theCount;
+                        console.log("sample is " + JSON.stringify(sample));
+                        returnSamples.push(sample);
+                        callback();
+                    })
+                }
+        ,function(err) {
+            //grab first 25 results and send them back
+            var currentQuery = query;
+            currentQuery["ir_project_sample_id"] = {"$in": irSampleIds};
+            console.log("sequences 25 query " + JSON.stringify(currentQuery));
+            annCollection.find(currentQuery).limit(25).toArray()
+                .then(function (sequences){
+                    returnSequences = sequences; 
+                
+                })
+                .then(function () {
+                    console.log("All done.");
+                    console.log(returnSamples);
+                    var result=[];
+                    db.close();
+                    results["summary"] = returnSamples;
+                    results["items"] = returnSequences;
+                    res.json(results);
+                
+             })})
             })
-            .then(function (records) {
-
-                //console.log("6." + records.length);
-
-                // push to results
-                records.forEach(function (r) {
-                    results.summary.push(r);
-                });
-
-                //console.log("7. final query");
-                return annCollection.find(query).limit(100).toArray();
-            })
-            .then(function (records) {
-                records.forEach(function (r) {
-                    results.items.push(r);
-                });
-            })
-            .then(function () {
-                // data cleanup
-                results.summary.forEach(function (entry) {
-
-                    entry.ir_filtered_sequence_count = counts[entry._id];
-
-                    Object.keys(entry).forEach(function (p) {
-                        if (!entry[p]) {
-                            delete entry[p];
-                        } else if ((typeof entry[p] === "string") && (entry[p].length === 0)) {
-                            delete entry[p];
-                        /*
-                         * VDJServer Specific Tags - deprecated in the iReceptor Turnkey?
-                         *
-                        } else if (p === "platform") {
-                            entry.sequencing_platform = entry[p];
-                        } else if (p === "sequence_count") {
-                            entry.ir_sequence_count = entry[p];
-                        } else if (p === "sex") {
-                            if (male_gender.indexOf(entry[p]) >= 0) {
-                                entry[p] = "M";
-                            } else if (female_gender.indexOf(entry[p]) >= 0) {
-                                entry[p] = "F";
-                            }
-                        */
-                        }
-                    });
-                });
-
-                results.items.forEach(function (entry) {
-
-                    // data cleanup - some of this may be legacy
-                    // VDJServer-specific hence, not applicable for the turnkey?
-                    Object.keys(entry).forEach(function (p) {
-                        if (!entry[p]) {
-                            delete entry[p];
-                        } else if ((typeof entry[p] === "string") && (entry[p].length === 0)) {
-                            delete entry[p];
-                        } else if (p === "v_call" || p === "d_call" || p === "j_call") {
-                            if (Array.isArray(entry[p])) {
-                                entry[p] = entry[p].toString();
-                            }
-                        }
-                        /*
-                         * VDJServer Specific Tag - deprecated in the iReceptor Turnkey?
-                         *
-                         *
-                        else if (p === "junction_nt_length") {
-                            entry.junction_length = entry[p];
-                        }
-                        */
-                    });
-                });
-            })
-            .then(function () {
-                //console.log("All done.");
-                //console.log(counts);
-                db.close();
-                res.json(results);
-            })
-            .catch(function (e) {
-                console.log("querySequenceSummary() error: " + e);
-            });
-    });
+        })
+        
 };
 
 // perform query, shared by GET and POST
