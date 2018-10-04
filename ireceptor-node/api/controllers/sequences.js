@@ -169,7 +169,7 @@ var constructQuery = function (req) {
         {
             if (value!=undefined)
             {
-                query[param_name] = value;
+                query["ir_annotation_tool"] = value;
             }
             return;
         }
@@ -177,7 +177,7 @@ var constructQuery = function (req) {
         {
             if ( value!=undefined)
             {
-                query["annotation_tool"]= value;
+                query["ir_annotation_tool"]= value;
             }
             return;
         }
@@ -300,7 +300,6 @@ var querySequenceSummary = function (req, res) {
                     irSampleIds.push(sample["_id"]);
                     annCollection.count(currentQuery, function (err, theCount){
                         sample["ir_filtered_sequence_count"] = theCount;
-                        console.log("sample is " + JSON.stringify(sample));
                         returnSamples.push(sample);
                         callback();
                     })
@@ -317,7 +316,6 @@ var querySequenceSummary = function (req, res) {
                 })
                 .then(function () {
                     console.log("All done.");
-                    console.log(returnSamples);
                     var result=[];
                     db.close();
                     results["summary"] = returnSamples;
