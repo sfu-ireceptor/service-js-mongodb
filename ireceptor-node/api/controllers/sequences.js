@@ -288,8 +288,8 @@ var querySequenceSummary = function (req, res) {
         //console.log("2. Connected successfully to mongo");
 
         var irdb = db.db(mongoSettings.dbname);
-        var annCollection = irdb.collection("sequences"); // Scott calls this the "rearrangement" collection
-        var sampleCollection = irdb.collection("samples");
+        var annCollection = irdb.collection("sequence"); // Scott calls this the "rearrangement" collection
+        var sampleCollection = irdb.collection("sample");
         console.log("Sample query "+JSON.stringify(sampleQuery));
 
         sampleCollection.find(sampleQuery).toArray()
