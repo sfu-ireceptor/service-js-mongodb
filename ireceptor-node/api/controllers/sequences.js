@@ -321,39 +321,39 @@ var querySequenceSummary = function (req, res) {
                     returnSequences.forEach(function (result) {
                         if (Array.isArray(result["v_call"]))
                         {
-                            result["v_call"] = result["v_call"].join(", or");
+                            result["v_call"] = result["v_call"].join(", or ");
                         }
                         if (Array.isArray(result["vgene_gene"]))
                         {
-                            result["vgene_gene"] = result["vgene_gene"].join(", or");
+                            result["vgene_gene"] = result["vgene_gene"].join(", or ");
                         }
                         if (Array.isArray(result["vgene_family"]))
                         {
-                            result["vgene_family"] = result["vgene_family"].join(", or");
+                            result["vgene_family"] = result["vgene_family"].join(", or ");
                         }
                         if (Array.isArray(result["j_call"]))
                         {
-                            result["j_call"] = result["j_call"].join(", or");
+                            result["j_call"] = result["j_call"].join(", or ");
                         }
                         if (Array.isArray(result["jgene_gene"]))
                         {
-                            result["jgene_gene"] = result["jgene_gene"].join(", or");
+                            result["jgene_gene"] = result["jgene_gene"].join(", or ");
                         }
                         if (Array.isArray(result["jgene_family"]))
                         {
-                            result["jgene_family"] = result["jgene_family"].join(", or");
+                            result["jgene_family"] = result["jgene_family"].join(", or ");
                         }
                         if (Array.isArray(result["d_call"]))
                         {
-                            result["d_call"] = result["d_call"].join(", or");
+                            result["d_call"] = result["d_call"].join(", or ");
                         }
                         if (Array.isArray(result["dgene_gene"]))
                         {
-                            result["dgene_gene"] = result["dgene_gene"].join(", or");
+                            result["dgene_gene"] = result["dgene_gene"].join(", or ");
                         }
                         if (Array.isArray(result["dgene_family"]))
                         {
-                            result["dgene_family"] = result["dgene_family"].join(", or");
+                            result["dgene_family"] = result["dgene_family"].join(", or ");
                         }
                     });
                     results["summary"] = returnSamples;
