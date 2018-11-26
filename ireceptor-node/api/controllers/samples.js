@@ -86,7 +86,7 @@ var querySamples = function(req, res) {
 
 	    // string is $regex
 	    if (parameter.type == 'string') {
-		query[param_name] = { "$regex": escapeString(req.swagger.params[parameter.name].value) };
+		query[param_name] = { "$regex": escapeString(req.swagger.params[parameter.name].value), "$options": "i" };
 	    }
 
 	    // integer is exact match
