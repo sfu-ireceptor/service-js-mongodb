@@ -26,10 +26,92 @@ var airrConfig = {
   configDir: 'config'
 };
 
+// file export helper arrays
+var airrHeadersMapping = []; 
+       airrHeadersMapping['sequence']='sequence';
+       airrHeadersMapping['sequence_id']='seq_name';
+       airrHeadersMapping['rearrangement_id']='NULL';
+       airrHeadersMapping['rev_comp']='rev_comp';
+       airrHeadersMapping['sequence_alignment']='NULL';
+       airrHeadersMapping['germline_alignment']='NULL';
+       airrHeadersMapping['v_call']='v_call';
+       airrHeadersMapping['j_call']='j_call';
+       airrHeadersMapping['d_call']='d_call';
+       airrHeadersMapping['c_call']='NULL';
+       airrHeadersMapping['v_score']='v_score';
+       airrHeadersMapping['d_score']='NULL';
+       airrHeadersMapping['j_score']='NULL';
+       airrHeadersMapping['c_score']='NULL';
+       airrHeadersMapping['junction']='junction';
+       airrHeadersMapping['junction_length']='junction_length';
+       airrHeadersMapping['v_cigar']='NULL';
+       airrHeadersMapping['j_cigar']='NULL';
+       airrHeadersMapping['d_cigar']='NULL';
+       airrHeadersMapping['c_cigar']='NULL';
+       airrHeadersMapping['cdr1_aa']='cdr1region_sequence_aa';
+       airrHeadersMapping['cdr2_aa']='cdr2region_sequence_aa';
+       airrHeadersMapping['cdr3_aa']='cdr3region_sequence_aa';
+       airrHeadersMapping['junction_aa']='junction_aa';
+       airrHeadersMapping['junction_aa_length']='junction_aa_length';
+       airrHeadersMapping['productive']='functional';
+       airrHeadersMapping['functional']='functional';
+       airrHeadersMapping['subject_id']='subject_id';
+       airrHeadersMapping['sex']='sex';
+       airrHeadersMapping['organism']='organism';
+       airrHeadersMapping['ethnicity']='ethnicity';
+       airrHeadersMapping['study_title']='study_title';
+       airrHeadersMapping['study_id']='study_id';
+       airrHeadersMapping['study_description']='study_description';
+       airrHeadersMapping['lab_name']='lab_name';
+       airrHeadersMapping['disease_state_sample']='disease_state_sample';
+       airrHeadersMapping['study_group_description']='study_group_description';
+       airrHeadersMapping['sample_id']='sample_id';
+       airrHeadersMapping['template_class']='template_class';
+       airrHeadersMapping['tissue']='tissue';
+       airrHeadersMapping['cell_subset']='cell_subset';
+       airrHeadersMapping['sequencing_platform']='sequencing_platform';
+       airrHeadersMapping['cell_phenotype']='cell_phenotype';
+    
+var projection = {
+            "sequence":1,
+            "seq_name":1,
+            "rev_comp":1,
+            "v_call":1,
+            "j_call":1,
+            "d_call":1,
+            "v_score":1,
+            "junction":1,
+            "junction_length":1,
+            "cdr1region_sequence_aa":1,
+            "cdr2region_sequence_aa":1,
+            "cdr3region_sequence_aa":1,
+            "junction_aa":1,
+            "junction_aa_length":1,
+            "functional":1,
+            "subject_id":1,
+            "sex":1,
+            "organism":1,
+            "ethnicity":1,
+            "study_title":1,
+            "study_id":1,
+            "study_description":1,
+            "lab_name":1,
+            "disease_state_sample":1,
+            "study_group_description":1,
+            "sample_id":1,
+            "template_class":1,
+            "tissue":1,
+            "cell_subset":1,
+            "sequencing_platform":1,
+            "cell_phenotype":1,
+            "ir_project_sample_id":1
+            }
+
 // VDJServer-specific - deprecated?
 //var male_gender = ["M", "m", "male", "Male"];
 //var female_gender = ["F", "f", "female", "Female"];
-
+var airrTerms = []; 
+airrTerms = Object.keys(airrHeadersMapping);
 var escapeString = function (text) {
     var encoded = text.replace(/\*/g, "\\*");
     encoded = encoded.replace(/\+/g, "\\+");
@@ -114,6 +196,10 @@ var constructQuery = function (req) {
             }*/
             //skip the processing of ir_project_sample_list in the sequences query. each id 
             //  will be processed separately 
+            return;
+        }
+
+        if (parameter.name === "ir_data_format"){
             return;
         }
 
@@ -221,47 +307,36 @@ var constructQuery = function (req) {
             }
         }
 
-        //console.log(parameter.name);
-        //console.log(parameter.type);
-        //console.log(req.swagger.params[parameter.name].value);
-        if (value !== undefined) {
+      
+    
+        if (value != undefined) {
             // arrays perform $in
-            if (parameter.type === "array") {
-                query[param_name] = {"$in": value};
-                return;
+            if (parameter.type == 'array') {
+            query[param_name] = { "$in": req.swagger.params[parameter.name].value };
             }
 
             // string is $regex
-            if (parameter.type === "string") {
-                if (param_name === "junction_aa") {
-                    query[param_name] = {"$regex": value};
-                } else {
-                    query[param_name] = {"$regex": "^" + escapeString(value)};
-                }
+            if (parameter.type == 'string') {
+            query[param_name] = { "$regex": '^' + escapeString(req.swagger.params[parameter.name].value) };
             }
 
             // integer is exact match
-            if (parameter.type === "integer") {
-                console.log("Doing int conversion");
-                var func_val = parseInt(value);
-                query[param_name] = func_val;
-                return;
+            if (parameter.type == 'integer') {
+            query[param_name] = req.swagger.params[parameter.name].value;
             }
 
             // number is exact match
-            if (parameter.type === "number") {
-                query[param_name] = value;
-                return;
+            if (parameter.type == 'number') {
+            query[param_name] = req.swagger.params[parameter.name].value;
             }
 
             // boolean is exact match
-            if (parameter.type === "boolean") {
-                query[param_name] = value;
-                return;
+            if (parameter.type == 'boolean') {
+            query[param_name] = req.swagger.params[parameter.name].value;
             }
         }
     });
-
+    console.log("Query constructed as: "+JSON.stringify(query));
     return query;
 };
 
@@ -368,107 +443,115 @@ var querySequenceSummary = function (req, res) {
 
 // perform query, shared by GET and POST
 var querySequenceData = function (req, res) {
-    //console.log(req);
+     //console.log(req);
     //console.log(req.swagger.operation.parameterObjects);
     //console.log(req.swagger.params.ir_username.value);
     //console.log(req.swagger.params.ir_subject_age_min.value);
 
     // currently only support JSON and AIRR format
     var format = req.swagger.params['ir_data_format'].value;
-    if ((format != 'json') && (format != 'airr')) {
-        res.status(400).end();
-        return;
+    if (format != 'airr') {
+    res.status(400).end();
+    return;
     }
 
-    var query = constructQuery(req, res);
-    //console.log(query);
+    var query = constructQuery(req);
+    var sampleQuery = constructSampleQuery(req);
+    console.log(query);    
+ 
+    res.setHeader('Content-Type', 'text/tsv');
+    res.setHeader('Content-Disposition', 'attachment;filename="data.tsv"');
+    // Handle client HTTP request abort
+    var abortQuery = false;
+    req.on("close", function() {
+    console.log('Client request closed unexpectedly');
+    abortQuery = true;
+    });
 
-    var headers = [];
-    if (format == 'json') {
-        res.setHeader('Content-Type', 'application/json');
-        res.setHeader('Content-Disposition', 'attachment;filename="data.json"');
-    } else if (format == 'airr') {
-        res.setHeader('Content-Type', 'text/tsv');
-        res.setHeader('Content-Disposition', 'attachment;filename="data.tsv"');
+    MongoClient.connect(url, function(err, db) {
+    assert.equal(null, err);
+    console.log("Connected successfully to mongo");
 
-        // Load AIRR spec for field names
-        var airrFile = path.resolve(airrConfig.appRoot, '../../config/airr-definitions.yaml');
-        //console.log(airrFile);
-        var doc = yaml.safeLoad(fs.readFileSync(airrFile));
-        if (!doc) {
-            console.error('Could not load AIRR definitions yaml file.');
-            res.status(500).end();
-            return;
-        }
+    var v1db = db.db(mongoSettings.dbname);
+    var annCollection = v1db.collection('sequence');
+    var sampleCollection = v1db.collection('sample');
+    var first = true;
 
-        var schema = doc['Rearrangement'];
-        if (!schema) {
-            console.error('Rearrangement schema missing.');
-            res.status(500).end();
-            return;
-        }
-        for (var p in schema['properties']) headers.push(p);
+    sampleCollection.find(sampleQuery).toArray()
+            .then(function (theSamples){
+                async.eachSeries(theSamples, function(sample, callback){
+                    var currentQuery = query;
+                    currentQuery["ir_project_sample_id"] = sample["_id"];
+                    //irSampleIds.push(sample["_id"]);
+                    var cursor = annCollection.find(currentQuery, projection);
+                    var vals=[];
+                    cursor.forEach(function(entry) {
+                        if (abortQuery) {
+                            console.log('aborting query');
+                            cursor.close(function(err, result) {
+                                // db will be closed by callback
+                            });}
+                        else
+                        { 
+                            if (first){
+                                var sampleFields = [];
+                                sampleFields = Object.keys(sample);
+                                res.write(airrTerms.join('\t'));
+                                res.write(sampleFields.join('\t'));
+                                res.write('\n');
+                                first = false;
+                            }    
+                            var results=[];                        
+                           
+                            for (var airrField in airrHeadersMapping) {
+                                console.log("processing " + airrField + " which maps to " + airrHeadersMapping[airrField]);
+                                    if (airrHeadersMapping[airrField] == 'NULL' || entry[airrHeadersMapping[airrField]] == undefined)
+                                    {
+                                        results.push('');
+                                    }
+                                    else
+                                    {
+                                        if (airrField == 'rev_comp') {
+                                            if (entry['rev_comp'] == '+') {
+                                               entry['rev_comp'] = 'true';
+                                            }
+                                            if (entry['rev_comp'] == '-') {
+                                                entry['rev_comp'] = 'false';
+                                            }
+                                        }
+                                        if (airrField == 'productive' || airrField == 'functional') {
+                                            if (entry[airrField] == 1) {
+                                                entry[airrField] = 'true';
+                                            } else if (entry[airrField] == 0) {
+                                                entry[airrField] = 'false';
+                                            }
+                                        }
+                                        if (entry[airrHeadersMapping[airrField]].type == 'array')
+                                        {
+                                            entry[airrHeadersMapping[airrField]] = entry[airrHeadersMapping[airrField]].join(', or ');
+                                        }
 
-            // iReceptor specific
-            headers.push('ir_project_sample_id');
+                                        results.push(entry[airrHeadersMapping[airrField]]);
+                                    }
+                            }
+                            results = results.concat(Object.values(sample));
+                            //res.write(Object.values(entry).join('\t'));
+                            console.log(results);
+                            res.write(results.join('\t'));
+                            res.write('\n');
+                        }
+                        callback();
+                    });
 
-            // VDJServer specific
-            //headers.push('vdjserver_filename_uuid');
-
-            res.write(headers.join('\t'));
-            res.write('\n');
-           //console.log(headers);
-        }
-
-        MongoClient.connect(url, function(err, db) {
-            assert.equal(null, err);
-            //console.log("Connected successfully to mongo");
-
-            var irdb = db.db(mongoSettings.dbname);
-            var annCollection = irdb.collection("sequence"); // Scott calls these the "rearrangement" collection
-
-            var first = true;
-            if (format == 'json') res.write('[');
-            annCollection.find(query).forEach(function(entry) {
-                // data cleanup
-                var record = '';
-                Object.keys(entry).forEach(function (p) {
-                    if (!entry[p]) delete entry[p];
-                    else if ((typeof entry[p] == 'string') && (entry[p].length == 0)) delete entry[p];
-                    else if (p == '_id') delete entry[p];
-                    else if (p == 'filename_uuid') {
-                        entry['ir_project_sample_id'] = entry[p];
-                        //entry['vdjserver_filename_uuid'] = entry[p];
-                        entry['rearrangement_set_id'] = entry[p];
-                    } else if (p == 'junction_nt_length') entry['junction_length'] = entry[p]; // is this VDJServer specific?
-                });
-
-                if (!first) {
-                    if (format == 'json') res.write(',\n');
-                    if (format == 'airr') res.write('\n');
-                } else {
-                    first = false;
-	            }
-
-                if (format == 'json') res.write(JSON.stringify(entry));
-                if (format == 'airr') {
-                    var vals = [];
-                    for (var i = 0; i < headers.length; ++i) {
-                        var p = headers[i];
-                        if (!entry[p]) vals.push('');
-                        else vals.push(entry[p]);
-                    }
-                    res.write(vals.join('\t'));
                 }
-            }, function(err) {
-               db.close();
-               if (format == 'json') res.write(']\n');
-               if (format == 'airr') res.write('\n');
-               res.end();
-            });
+                ,function(err) {
+                    db.close();
+                    res.end();
+                }
+            )
+        });
     });
 };
-
 /*
   Functions in a127 controllers used for operations should take two parameters:
 
